@@ -9,13 +9,20 @@ plugins {
 }
 
 kotlin {
+
     androidLibrary {
         namespace = "com.fingoal.app.sharedLogic"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-        minSdk = libs.versions.android.minSdk.get().toInt()
+
+        compileSdk = libs.versions.android.compileSdk
+            .get()
+            .toInt()
+
+        minSdk = libs.versions.android.minSdk
+            .get()
+            .toInt()
 
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget = JvmTarget.JVM_11
         }
 
         androidResources {
@@ -23,59 +30,96 @@ kotlin {
         }
     }
 
-    // Targets de iOS
+
+    // ---------------------------------------------------------
+    // iOS
+    // ---------------------------------------------------------
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
+
         iosTarget.binaries.framework {
             baseName = "SharedLogic"
             isStatic = true
         }
     }
 
+
+    // ---------------------------------------------------------
+    // Source Sets
+    // ---------------------------------------------------------
+
     sourceSets {
+
         commonMain.dependencies {
-            // Room & SQLite KMP
+
+            // Room KMP
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
 
-            // Serialization & Coroutines
+            // Serialization
             implementation(libs.kotlinx.serialization.json)
+
+            // Date / Time
             implementation(libs.kotlinx.datetime)
 
-            // Ktor HTTP Client
+            // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
-            // DataStore Preferences
+            // DataStore
             implementation(libs.androidx.datastore.preferences)
 
-            // Koin DI
+            // Koin
             implementation(libs.koin.core)
         }
 
+
         androidMain.dependencies {
+
             implementation(libs.ktor.client.okhttp)
         }
 
+
         iosMain.dependencies {
+
             implementation(libs.ktor.client.darwin)
         }
 
+
         commonTest.dependencies {
+
             implementation(libs.kotlin.test)
         }
     }
 }
 
+
+// -------------------------------------------------------------
+// Room
+// -------------------------------------------------------------
+
 room {
     schemaDirectory("$projectDir/schemas")
 }
 
+
+// -------------------------------------------------------------
+// KSP
+// -------------------------------------------------------------
+
 dependencies {
-    // Procesador KSP para Room
-    add("kspCommonMainMetadata", libs.androidx.room.compiler)
-    add("kspAndroid", libs.androidx.room.compiler)
+
+    add(
+        "kspCommonMainMetadata",
+        libs.androidx.room.compiler
+    )
+
+    add(
+        "kspAndroid",
+        libs.androidx.room.compiler
+    )
 }
