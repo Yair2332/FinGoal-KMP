@@ -30,6 +30,7 @@ kotlinx-serialization = "1.7.3"
 
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
+coreKtx = "1.19.1"
 
 
 [libraries]
@@ -96,6 +97,7 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 # Kotlinx
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 
 
 [plugins]
@@ -115,3 +117,4 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 room = { id = "androidx.room", version.ref = "room" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

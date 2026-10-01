@@ -1,17 +1,22 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinAndroid)
 }
 
 dependencies {
 
+    implementation(project(":sharedLogic"))
     implementation(project(":sharedUI"))
 
     implementation(libs.androidx.activity.compose)
 
     implementation(libs.compose.uiToolingPreview)
+    implementation(libs.core.ktx)
 
     debugImplementation(libs.compose.uiTooling)
+
+
 }
 
 android {
@@ -89,5 +94,8 @@ android {
 
     buildFeatures {
         compose = true
+    }
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
