@@ -1,0 +1,109 @@
+package com.fingoal.app.presentation.goals
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.fingoal.app.data.local.UserPreferences
+import com.fingoal.app.domain.model.Goal
+import com.fingoal.app.domain.usecase.goals.AddGoalContributionUseCase
+import com.fingoal.app.domain.usecase.goals.AddGoalUseCase
+import com.fingoal.app.domain.usecase.goals.DeleteGoalUseCase
+import com.fingoal.app.domain.usecase.goals.GetGoalsUseCase
+import com.fingoal.app.domain.usecase.goals.SyncGoalsUseCase
+import com.fingoal.app.domain.usecase.goals.UpdateGoalUseCase
+import com.fingoal.app.domain.usecase.goals.WithdrawGoalUseCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+class GoalViewModel(
+    private val getGoalsUseCase: GetGoalsUseCase,
+    private val addGoalUseCase: AddGoalUseCase,
+    private val syncGoalsUseCase: SyncGoalsUseCase,
+    private val updateGoalUseCase: UpdateGoalUseCase,
+    private val deleteGoalUseCase: DeleteGoalUseCase,
+    private val addGoalContributionUseCase: AddGoalContributionUseCase,
+    private val withdrawGoalUseCase: WithdrawGoalUseCase,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(GoalUiState())
+    val uiState: StateFlow<GoalUiState> = _uiState.asStateFlow()
+
+    init {
+        loadGoals()
+        refreshGoals()
+    }
+
+    private fun loadGoals() {
+        viewModelScope.launch {
+            getGoalsUseCase().collect { list ->
+                _uiState.update { it.copy(goals = list, isLoading = false) }
+            }
+        }
+    }
+
+    fun refreshGoals() = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true) }
+        try {
+            syncGoalsUseCase()
+        } catch (e: Exception) {
+            _uiState.update { it.copy(errorMessage = e.message) }
+        } finally {
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun saveGoal(
+        goal: Goal?,
+        title: String,
+        desc: String,
+        amount: Double,
+        image: String
+    ) = viewModelScope.launch {
+        try {
+            if (goal == null) {
+                addGoalUseCase(title, desc, amount, image)
+            } else {
+                updateGoalUseCase(
+                    goal.copy(
+                        title = title,
+                        description = desc,
+                        targetAmount = amount,
+                        localImagePath = image
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            _uiState.update { it.copy(errorMessage = e.message) }
+        }
+    }
+
+    fun deleteGoal(goal: Goal) = viewModelScope.launch {
+        try {
+            deleteGoalUseCase(goal)
+        } catch (e: Exception) {
+            _uiState.update { it.copy(errorMessage = e.message) }
+        }
+    }
+
+    fun handleContribution(
+        goalId: String,
+        amount: Double,
+        isAdding: Boolean
+    ) = viewModelScope.launch {
+        try {
+            val userId = userPreferences.userId.firstOrNull() ?: throw Exception("No autorizado")
+            if (isAdding) {
+                addGoalContributionUseCase(goalId, userId, amount)
+            } else {
+                withdrawGoalUseCase(goalId, userId, amount)
+            }
+            syncGoalsUseCase()
+        } catch (e: Exception) {
+            _uiState.update { it.copy(errorMessage = e.message) }
+        }
+    }
+}

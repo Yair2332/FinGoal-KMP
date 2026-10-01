@@ -12,7 +12,8 @@ fun initKoin(appDeclaration: org.koin.dsl.KoinAppDeclaration = {}) {
             storageModule,
             repositoryModule,
             useCaseModule,
-            targetModule
+            targetModule,
+            viewModelModule
         )
     }
 }

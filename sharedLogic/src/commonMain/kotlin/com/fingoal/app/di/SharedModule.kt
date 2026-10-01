@@ -39,6 +39,20 @@ import com.fingoal.app.domain.usecase.transactions.SyncTransactionsUseCase
 import com.fingoal.app.domain.usecase.transactions.UpdateTransactionUseCase
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import com.fingoal.app.presentation.auth.AuthViewModel
+import com.fingoal.app.presentation.dashboard.DashboardViewModel
+import com.fingoal.app.presentation.goals.GoalViewModel
+import com.fingoal.app.presentation.habits.HabitViewModel
+import com.fingoal.app.presentation.transactions.TransactionViewModel
+
+
+val viewModelModule = module {
+    factory { AuthViewModel(get(), get(), get()) }
+    factory { DashboardViewModel(get()) }
+    factory { GoalViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { HabitViewModel(get(), get(), get(), get(), get(), get()) }
+    factory { TransactionViewModel(get(), get(), get(), get(), get()) }
+}
 
 val networkModule = module {
     single { createHttpClient() }
@@ -108,6 +122,7 @@ val appModule = module {
         databaseModule,
         storageModule,
         repositoryModule,
-        useCaseModule
+        useCaseModule,
+        viewModelModule
     )
 }
