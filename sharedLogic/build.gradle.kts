@@ -75,6 +75,7 @@ kotlin {
 
             // Koin
             implementation(libs.koin.core)
+            implementation("androidx.lifecycle:lifecycle-viewmodel:2.8.0")
         }
 
 
@@ -112,14 +113,7 @@ room {
 // -------------------------------------------------------------
 
 dependencies {
-
-    add(
-        "kspCommonMainMetadata",
-        libs.androidx.room.compiler
-    )
-
-    add(
-        "kspAndroid",
-        libs.androidx.room.compiler
-    )
+    add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
 }

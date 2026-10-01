@@ -16,9 +16,30 @@ import com.fingoal.app.domain.repository.AuthRepository
 import com.fingoal.app.domain.repository.GoalRepository
 import com.fingoal.app.domain.repository.HabitRepository
 import com.fingoal.app.domain.repository.TransactionRepository
+import com.fingoal.app.domain.usecase.auth.LoginUseCase
+import com.fingoal.app.domain.usecase.auth.RegisterUseCase
+import com.fingoal.app.domain.usecase.dashboard.GetDashboardDataUseCase
+import com.fingoal.app.domain.usecase.goals.AddGoalContributionUseCase
+import com.fingoal.app.domain.usecase.goals.AddGoalUseCase
+import com.fingoal.app.domain.usecase.goals.DeleteGoalUseCase
+import com.fingoal.app.domain.usecase.goals.GetGoalsUseCase
+import com.fingoal.app.domain.usecase.goals.SyncGoalsUseCase
+import com.fingoal.app.domain.usecase.goals.UpdateGoalUseCase
+import com.fingoal.app.domain.usecase.goals.WithdrawGoalUseCase
+import com.fingoal.app.domain.usecase.habits.CreateHabitUseCase
+import com.fingoal.app.domain.usecase.habits.DeleteHabitUseCase
+import com.fingoal.app.domain.usecase.habits.GetHabitsUseCase
+import com.fingoal.app.domain.usecase.habits.SyncHabitsUseCase
+import com.fingoal.app.domain.usecase.habits.ToggleHabitUseCase
+import com.fingoal.app.domain.usecase.habits.UpdateHabitUseCase
+import com.fingoal.app.domain.usecase.transactions.AddTransactionUseCase
+import com.fingoal.app.domain.usecase.transactions.DeleteTransactionUseCase
+import com.fingoal.app.domain.usecase.transactions.GetTransactionsUseCase
+import com.fingoal.app.domain.usecase.transactions.SyncTransactionsUseCase
+import com.fingoal.app.domain.usecase.transactions.UpdateTransactionUseCase
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
-// Reemplaza a NetworkModule
 val networkModule = module {
     single { createHttpClient() }
     single { AuthApiService(get()) }
@@ -27,7 +48,8 @@ val networkModule = module {
     single { TransactionApiService(get()) }
 }
 
-// Reemplaza a DatabaseModule
+expect val targetModule: Module
+
 val databaseModule = module {
     single { getRoomDatabase(get()) }
     single { get<AppDatabase>().transactionDao() }
@@ -35,12 +57,10 @@ val databaseModule = module {
     single { get<AppDatabase>().habitDao() }
 }
 
-// Reemplaza a StorageModule
 val storageModule = module {
     single { UserPreferences(get()) }
 }
 
-// Reemplaza a RepositoryModule
 val repositoryModule = module {
     single<TransactionRepository> { TransactionRepositoryImpl(get(), get(), get()) }
     single<GoalRepository> { GoalRepositoryImpl(get(), get(), get()) }
@@ -48,7 +68,46 @@ val repositoryModule = module {
     single<AuthRepository> { AuthRepositoryImpl(get()) }
 }
 
-// Módulo maestro que exporta todas las dependencias compartidas
+val useCaseModule = module {
+    // Auth
+    factory { LoginUseCase(get()) }
+    factory { RegisterUseCase(get()) }
+
+    // Dashboard
+    factory { GetDashboardDataUseCase(get(), get(), get()) }
+
+    // Goals
+    factory { AddGoalContributionUseCase(get()) }
+    factory { AddGoalUseCase(get()) }
+    factory { DeleteGoalUseCase(get()) }
+    factory { GetGoalsUseCase(get()) }
+    factory { SyncGoalsUseCase(get()) }
+    factory { UpdateGoalUseCase(get()) }
+    factory { WithdrawGoalUseCase(get()) }
+
+    // Habits
+    factory { CreateHabitUseCase(get()) }
+    factory { DeleteHabitUseCase(get()) }
+    factory { GetHabitsUseCase(get()) }
+    factory { SyncHabitsUseCase(get()) }
+    factory { ToggleHabitUseCase(get()) }
+    factory { UpdateHabitUseCase(get()) }
+
+    // Transactions
+    factory { AddTransactionUseCase(get()) }
+    factory { DeleteTransactionUseCase(get()) }
+    factory { GetTransactionsUseCase(get()) }
+    factory { SyncTransactionsUseCase(get()) }
+    factory { UpdateTransactionUseCase(get()) }
+}
+
 val appModule = module {
-    includes(networkModule, databaseModule, storageModule, repositoryModule)
+    includes(
+        networkModule,
+        targetModule,
+        databaseModule,
+        storageModule,
+        repositoryModule,
+        useCaseModule
+    )
 }

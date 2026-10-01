@@ -10,7 +10,9 @@ fun initKoin(appDeclaration: org.koin.dsl.KoinAppDeclaration = {}) {
             networkModule,
             databaseModule,
             storageModule,
-            repositoryModule
+            repositoryModule,
+            useCaseModule,
+            targetModule
         )
     }
 }
