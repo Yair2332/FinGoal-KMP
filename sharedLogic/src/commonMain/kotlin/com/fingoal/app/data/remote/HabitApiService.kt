@@ -2,6 +2,8 @@ package com.fingoal.app.data.remote
 
 import com.fingoal.app.data.remote.ApiConstants.BASE_URL
 import com.fingoal.app.data.remote.dto.HabitDto
+import com.fingoal.app.data.remote.dto.ToggleHabitRequest
+import com.fingoal.app.data.remote.dto.ToggleHabitResponse
 import com.fingoal.app.data.remote.dto.UpdateHabitRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -29,7 +31,10 @@ class HabitApiService(private val client: HttpClient) {
         }.body()
     }
 
-    suspend fun toggleHabit(habitId: String, body: Map<String, String>): Map<String, Any> {
+    suspend fun toggleHabit(
+        habitId: String,
+        body: ToggleHabitRequest
+    ): ToggleHabitResponse {
         return client.patch("$BASE_URL/api/habits/$habitId/toggle") {
             contentType(ContentType.Application.Json)
             setBody(body)

@@ -87,8 +87,12 @@ class GoalRepositoryImpl(
             targetAmount = goal.targetAmount,
             localImagePath = goal.localImagePath
         )
-        goalApiService.updateGoal(goal.remoteId, request)
+        val response = goalApiService.updateGoal(
+            goal.remoteId,
+            request
+        )
         goalDao.updateGoal(goal.toEntity())
+
     }
 
     override suspend fun deleteGoal(goal: Goal) {

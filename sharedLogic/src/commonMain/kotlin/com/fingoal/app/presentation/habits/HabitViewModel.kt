@@ -59,10 +59,19 @@ class HabitViewModel(
 
     fun toggleHabit(habitId: String) {
         viewModelScope.launch {
+
             try {
                 toggleHabitUseCase(habitId)
+
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Error al actualizar: ${e.message}") }
+
+                e.printStackTrace()
+
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "Error al actualizar: ${e.message}"
+                    )
+                }
             }
         }
     }

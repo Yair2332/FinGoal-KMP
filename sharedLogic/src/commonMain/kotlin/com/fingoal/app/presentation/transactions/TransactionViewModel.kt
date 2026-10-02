@@ -31,27 +31,55 @@ class TransactionViewModel(
         syncWithServer()
     }
 
-    fun showAddSheet() = _uiState.update { it.copy(showBottomSheet = true, editingTransaction = null) }
-
-    fun showEditSheet(transaction: Transaction) = _uiState.update {
-        it.copy(showBottomSheet = true, editingTransaction = transaction)
+    fun showAddSheet() = _uiState.update {
+        it.copy(
+            showBottomSheet = true,
+            editingTransaction = null
+        )
     }
 
-    fun hideSheet() = _uiState.update { it.copy(showBottomSheet = false, editingTransaction = null) }
+    fun showEditSheet(transaction: Transaction) = _uiState.update {
+        it.copy(
+            showBottomSheet = true,
+            editingTransaction = transaction
+        )
+    }
 
-    fun showDeleteDialog(transaction: Transaction) = _uiState.update { it.copy(transactionToDelete = transaction) }
+    fun hideSheet() = _uiState.update {
+        it.copy(
+            showBottomSheet = false,
+            editingTransaction = null
+        )
+    }
 
-    fun hideDeleteDialog() = _uiState.update { it.copy(transactionToDelete = null) }
+    fun showDeleteDialog(transaction: Transaction) = _uiState.update {
+        it.copy(transactionToDelete = transaction)
+    }
+
+    fun hideDeleteDialog() = _uiState.update {
+        it.copy(transactionToDelete = null)
+    }
 
     private fun loadTransactions() {
         _uiState.update { it.copy(isLoading = true) }
+
         viewModelScope.launch {
             getTransactionsUseCase()
                 .catch { error ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message
+                        )
+                    }
                 }
                 .collect { list ->
-                    _uiState.update { it.copy(isLoading = false, transactions = list) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            transactions = list
+                        )
+                    }
                 }
         }
     }
@@ -71,23 +99,47 @@ class TransactionViewModel(
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+
             try {
-                addTransactionUseCase(title, amount, category, isIncome, description)
+                addTransactionUseCase(
+                    title,
+                    amount,
+                    category,
+                    isIncome,
+                    description
+                )
+
                 hideSheet()
+
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message
+                    )
+                }
             }
         }
     }
 
     fun deleteTransaction() {
         val transaction = _uiState.value.transactionToDelete ?: return
+
         viewModelScope.launch {
             try {
-                deleteTransactionUseCase(transaction.id, transaction.remoteId)
+                deleteTransactionUseCase(
+                    transaction.id,
+                    transaction.remoteId
+                )
+
                 hideDeleteDialog()
+
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Error al borrar: ${e.message}") }
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "Error al borrar: ${e.message}"
+                    )
+                }
             }
         }
     }
@@ -102,12 +154,33 @@ class TransactionViewModel(
         description: String
     ) {
         viewModelScope.launch {
+
+
             _uiState.update { it.copy(isLoading = true) }
+
             try {
-                updateTransactionUseCase(localId, remoteId, title, amount, category, isIncome, description)
+                updateTransactionUseCase(
+                    localId = localId,
+                    remoteId = remoteId,
+                    title = title,
+                    amount = amount,
+                    category = category,
+                    isIncome = isIncome,
+                    description = description
+                )
+
+
                 hideSheet()
+
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Error al editar: ${e.message}") }
+
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error al editar: ${e.message}"
+                    )
+                }
             }
         }
     }

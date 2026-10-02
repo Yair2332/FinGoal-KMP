@@ -63,9 +63,24 @@ class GoalViewModel(
         amount: Double,
         image: String
     ) = viewModelScope.launch {
+
+        println(
+            """
+        [GoalDebug] SAVE START
+        goal=${goal?.remoteId}
+        title=$title
+        description=$desc
+        targetAmount=$amount
+        image=$image
+        """.trimIndent()
+        )
+
         try {
             if (goal == null) {
                 addGoalUseCase(title, desc, amount, image)
+
+                println("[GoalDebug] ADD GOAL COMPLETED")
+
             } else {
                 updateGoalUseCase(
                     goal.copy(
@@ -75,9 +90,20 @@ class GoalViewModel(
                         localImagePath = image
                     )
                 )
+
+                println("[GoalDebug] UPDATE GOAL COMPLETED")
             }
+
+            println("[GoalDebug] SAVE END")
+
         } catch (e: Exception) {
-            _uiState.update { it.copy(errorMessage = e.message) }
+
+            println("[GoalDebug] SAVE ERROR: ${e.message}")
+            e.printStackTrace()
+
+            _uiState.update {
+                it.copy(errorMessage = e.message)
+            }
         }
     }
 

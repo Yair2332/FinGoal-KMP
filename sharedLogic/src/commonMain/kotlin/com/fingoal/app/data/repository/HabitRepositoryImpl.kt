@@ -7,6 +7,7 @@ import com.fingoal.app.data.mapper.toDomain
 import com.fingoal.app.data.mapper.toEntity
 import com.fingoal.app.data.remote.HabitApiService
 import com.fingoal.app.data.remote.dto.HabitDto
+import com.fingoal.app.data.remote.dto.ToggleHabitRequest
 import com.fingoal.app.data.remote.dto.UpdateHabitRequest
 import com.fingoal.app.domain.model.Habit
 import com.fingoal.app.domain.repository.HabitRepository
@@ -61,16 +62,37 @@ class HabitRepositoryImpl(
 
     override suspend fun toggleHabit(habitId: String) {
         try {
+
             val todayStr = getTodayString()
-            val response = api.toggleHabit(habitId, mapOf("todayStr" to todayStr))
+
+            val response = api.toggleHabit(
+                habitId = habitId,
+                body = ToggleHabitRequest(
+                    todayStr = todayStr
+                )
+            )
+
 
             val currentHabit = dao.getHabitByRemoteId(habitId)
-            val completedToday = response["completedToday"] as? Boolean ?: false
-            val streak = (response["streak"] as? Number)?.toInt() ?: 0
+
+
+            val completedToday = response.completedToday
+            val streak = response.streak
 
             if (currentHabit != null) {
-                dao.updateHabit(currentHabit.copy(completedToday = completedToday, streak = streak))
+
+
+                dao.updateHabit(
+                    currentHabit.copy(
+                        completedToday = completedToday,
+                        streak = streak
+                    )
+                )
+
+            } else {
+                println("[HabitDebug] CURRENT LOCAL HABIT IS NULL")
             }
+
         } catch (e: Exception) {
             e.printStackTrace()
             throw e

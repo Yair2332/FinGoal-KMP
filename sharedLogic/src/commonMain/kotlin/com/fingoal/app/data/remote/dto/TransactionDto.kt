@@ -17,5 +17,5 @@ data class TransactionDto(
     val type: String,
 
     @SerialName("createdAt")
-    val createdAt: Long
+    val createdAt: Long? = null
 )
