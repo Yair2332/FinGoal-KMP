@@ -12,13 +12,8 @@ kotlin {
     androidLibrary {
         namespace = "com.fingoal.app.sharedUI"
 
-        compileSdk = libs.versions.android.compileSdk
-            .get()
-            .toInt()
-
-        minSdk = libs.versions.android.minSdk
-            .get()
-            .toInt()
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
 
         compilerOptions {
             jvmTarget = JvmTarget.JVM_11
@@ -29,7 +24,6 @@ kotlin {
         }
     }
 
-
     // ---------------------------------------------------------
     // iOS
     // ---------------------------------------------------------
@@ -38,13 +32,11 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-
         iosTarget.binaries.framework {
             baseName = "SharedUI"
             isStatic = true
         }
     }
-
 
     // ---------------------------------------------------------
     // Source Sets
@@ -52,25 +44,29 @@ kotlin {
 
     sourceSets {
 
-        androidMain.dependencies {
-
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.compose.uiTooling)
-        }
-
-
         commonMain.dependencies {
+
+            // Shared Logic
             api(project(":sharedLogic"))
+
+            // Compose
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
+
+            // AndroidX Lifecycle
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
         }
 
+        androidMain.dependencies {
+
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.compose.uiTooling)
+        }
 
         commonTest.dependencies {
 
@@ -79,13 +75,11 @@ kotlin {
     }
 }
 
-
 // -------------------------------------------------------------
 // Android Runtime
 // -------------------------------------------------------------
 
 dependencies {
-
     androidRuntimeClasspath(
         libs.compose.uiTooling
     )

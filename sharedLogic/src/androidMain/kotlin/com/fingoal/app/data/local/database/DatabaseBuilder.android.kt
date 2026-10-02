@@ -9,9 +9,7 @@ fun getDatabaseBuilder(
 ): RoomDatabase.Builder<AppDatabase> {
 
     val appContext = context.applicationContext
-
-    val dbFile =
-        appContext.getDatabasePath("fingoal.db")
+    val dbFile = appContext.getDatabasePath("fingoal.db")
 
     return Room.databaseBuilder<AppDatabase>(
         context = appContext,
