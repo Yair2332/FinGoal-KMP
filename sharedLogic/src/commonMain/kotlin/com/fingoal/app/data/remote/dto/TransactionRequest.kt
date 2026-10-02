@@ -1,5 +1,8 @@
 package com.fingoal.app.data.remote.dto
+import kotlinx.serialization.Serializable
 
+
+@Serializable
 data class TransactionRequest(
     val userId: String,
     val title: String,

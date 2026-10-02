@@ -5,8 +5,8 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    alias(libs.plugins.kotlinSerialization)
 }
-
 kotlin {
     androidLibrary {
         namespace = "com.fingoal.app.sharedLogic"
