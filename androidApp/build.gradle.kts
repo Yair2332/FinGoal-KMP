@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinAndroid)
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 dependencies {
@@ -13,7 +14,8 @@ dependencies {
 
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.compose.foundation)
-    implementation(libs.compose.material3)
+
+    implementation(libs.androidx.material3)
 
     debugImplementation(libs.compose.uiTooling)
 
@@ -22,6 +24,9 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+
+    implementation(libs.androidx.navigation.compose)
 }
 
 android {

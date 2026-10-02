@@ -8,7 +8,6 @@ plugins {
 }
 
 kotlin {
-
     androidLibrary {
         namespace = "com.fingoal.app.sharedUI"
 
@@ -24,10 +23,6 @@ kotlin {
         }
     }
 
-    // ---------------------------------------------------------
-    // iOS
-    // ---------------------------------------------------------
-
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -38,15 +33,9 @@ kotlin {
         }
     }
 
-    // ---------------------------------------------------------
-    // Source Sets
-    // ---------------------------------------------------------
-
     sourceSets {
 
         commonMain.dependencies {
-
-            // Shared Logic
             api(project(":sharedLogic"))
 
             // Compose
@@ -57,27 +46,27 @@ kotlin {
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
 
-            // AndroidX Lifecycle
+            // Lifecycle
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            // Navigation KMP
+            implementation(libs.androidx.navigation.compose)
+
+            // Koin
+            implementation(libs.koin.compose)
         }
 
         androidMain.dependencies {
-
-            implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
+            implementation(libs.compose.uiToolingPreview)
         }
 
         commonTest.dependencies {
-
             implementation(libs.kotlin.test)
         }
     }
 }
-
-// -------------------------------------------------------------
-// Android Runtime
-// -------------------------------------------------------------
 
 dependencies {
     androidRuntimeClasspath(

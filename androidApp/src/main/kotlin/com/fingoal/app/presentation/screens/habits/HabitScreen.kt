@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,7 +28,7 @@ import com.fingoal.app.presentation.components.EmptyStateComponent
 import com.fingoal.app.presentation.screens.habits.components.AddHabitDialog
 import com.fingoal.app.presentation.screens.habits.components.HabitHeader
 import com.fingoal.app.presentation.screens.habits.components.HabitItem
-import io.insert_koin.androidx.compose.koinViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HabitScreen(viewModel: HabitViewModel = koinViewModel()) {
@@ -71,7 +72,9 @@ fun HabitScreen(viewModel: HabitViewModel = koinViewModel()) {
                                 color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(start = 8.dp),
                             )
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 1.dp))
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 1.dp)
+                            )
                         }
                         items(habits, key = { it.remoteId }) { habit ->
                             HabitItem(

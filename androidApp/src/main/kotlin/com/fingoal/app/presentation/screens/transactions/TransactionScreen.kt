@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -71,7 +72,9 @@ fun TransactionScreen(viewModel: TransactionViewModel) {
                             modifier = Modifier.padding(top = 8.dp),
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 1.dp))
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 1.dp)
+                        )
                     }
                     items(items = lista, key = { it.id }) { transaction ->
                         TransactionItem(
