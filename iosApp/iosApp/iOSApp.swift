@@ -1,7 +1,13 @@
 import SwiftUI
+import SharedLogic
 
 @main
-struct iOSApp: App {
+struct iosApp: App {
+
+    init() {
+        initializeKoin()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
