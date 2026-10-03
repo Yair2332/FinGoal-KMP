@@ -5,8 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -48,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import com.fingoal.app.domain.model.Transaction
 import com.fingoal.app.ui.screens.transactions.CategoryProvider
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionFormContent(
     initialTransaction: Transaction? = null,
@@ -102,6 +100,10 @@ fun TransactionFormContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
+        // =========================================================
+        // TÍTULO
+        // =========================================================
+
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -128,6 +130,10 @@ fun TransactionFormContent(
             )
         }
 
+        // =========================================================
+        // INGRESO / GASTO
+        // =========================================================
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -137,15 +143,18 @@ fun TransactionFormContent(
                     MaterialTheme.colorScheme.surfaceVariant
                 )
         ) {
+
             val items = listOf(
                 "Ingreso" to incomeColor,
                 "Gasto" to expenseColor
             )
 
-            items.forEachIndexed { index: Int, pair: Pair<String, Color> ->
+            items.forEachIndexed { index, pair ->
+
                 val (text, color) = pair
 
-                val selected = (index == 0) == isIncome
+                val selected =
+                    (index == 0) == isIncome
 
                 Box(
                     modifier = Modifier
@@ -165,9 +174,11 @@ fun TransactionFormContent(
                         },
                     contentAlignment = Alignment.Center
                 ) {
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+
                         Icon(
                             imageVector = if (index == 0) {
                                 Icons.Default.ArrowUpward
@@ -200,10 +211,14 @@ fun TransactionFormContent(
             }
         }
 
+        // =========================================================
+        // TÍTULO
+        // =========================================================
+
         OutlinedTextField(
             value = title,
-            onValueChange = { value: String ->
-                title = value
+            onValueChange = {
+                title = it
             },
             label = {
                 Text("Título")
@@ -212,12 +227,17 @@ fun TransactionFormContent(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // =========================================================
+        // MONTO
+        // =========================================================
+
         OutlinedTextField(
             value = amount,
-            onValueChange = { value: String ->
+            onValueChange = { value ->
+
                 if (
-                    value.all { char: Char ->
-                        char.isDigit() || char == '.'
+                    value.all {
+                        it.isDigit() || it == '.'
                     }
                 ) {
                     amount = value
@@ -234,49 +254,97 @@ fun TransactionFormContent(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // =========================================================
+        // CATEGORÍA
+        // =========================================================
+
         Text(
             text = "Categoría",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            CategoryProvider.categorias.forEach { cat ->
 
-                val isSelected = category.uppercase() == cat.nombre.uppercase()
+            CategoryProvider.categorias
+                .chunked(2)
+                .forEach { rowCategories ->
 
-                FilterChip(
-                    selected = isSelected,
-                    onClick = {
-                        category = cat.nombre.uppercase()
-                    },
-                    label = {
-                        Text(cat.nombre)
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = cat.icono,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-            }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        rowCategories.forEach { cat ->
+
+                            val isSelected =
+                                category.uppercase() ==
+                                        cat.nombre.uppercase()
+
+                            FilterChip(
+                                modifier = Modifier.weight(1f),
+
+                                selected = isSelected,
+
+                                onClick = {
+                                    category = cat.nombre.uppercase()
+                                },
+
+                                label = {
+                                    Text(
+                                        text = cat.nombre,
+                                        maxLines = 1
+                                    )
+                                },
+
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = cat.icono,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                },
+
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor =
+                                        MaterialTheme.colorScheme.primary,
+
+                                    selectedLabelColor =
+                                        MaterialTheme.colorScheme.onPrimary,
+
+                                    selectedLeadingIconColor =
+                                        MaterialTheme.colorScheme.onPrimary,
+
+                                    containerColor =
+                                        MaterialTheme.colorScheme.surfaceVariant,
+
+                                    labelColor =
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            )
+                        }
+
+                        // Si la última fila tiene una sola categoría,
+                        // ocupamos el espacio restante.
+                        if (rowCategories.size == 1) {
+                            Spacer(
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
         }
+
+        // =========================================================
+        // DESCRIPCIÓN
+        // =========================================================
 
         OutlinedTextField(
             value = description,
-            onValueChange = { value: String ->
-                description = value
+            onValueChange = {
+                description = it
             },
             label = {
                 Text("Descripción (Opcional)")
@@ -286,15 +354,22 @@ fun TransactionFormContent(
                 .heightIn(min = 100.dp)
         )
 
+        // =========================================================
+        // GUARDAR
+        // =========================================================
+
         Button(
             onClick = {
-                val parsedAmount = amount.toDoubleOrNull() ?: 0.0
+
+                val parsedAmount =
+                    amount.toDoubleOrNull() ?: 0.0
 
                 if (
                     title.isNotBlank() &&
                     parsedAmount > 0 &&
                     category.isNotBlank()
                 ) {
+
                     onSave(
                         title,
                         parsedAmount,
@@ -302,14 +377,17 @@ fun TransactionFormContent(
                         isIncome,
                         description
                     )
+
                 } else {
                     isError = true
                 }
             },
+
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
+
             Text(
                 text = "Guardar Transacción",
                 fontWeight = FontWeight.Bold

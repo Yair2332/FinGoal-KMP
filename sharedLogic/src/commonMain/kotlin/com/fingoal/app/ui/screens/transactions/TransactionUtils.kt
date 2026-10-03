@@ -1,12 +1,18 @@
 package com.fingoal.app.ui.screens.transactions
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Flight
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -25,7 +31,13 @@ object CategoryProvider {
         Categoria("Tecnología", Icons.Default.Computer),
         Categoria("Salud", Icons.Default.Favorite),
         Categoria("Entretenimiento", Icons.Default.Movie),
-        Categoria("Otros", Icons.Default.ShoppingCart)
+        Categoria("Compras", Icons.Default.ShoppingCart),
+        Categoria("Hogar", Icons.Default.Home),
+        Categoria("Educación", Icons.Default.School),
+        Categoria("Viajes", Icons.Default.Flight),
+        Categoria("Servicios", Icons.Default.Build),
+        Categoria("Trabajo", Icons.Default.Work),
+        Categoria("Otros", Icons.Default.MoreHoriz)
     )
 }
 

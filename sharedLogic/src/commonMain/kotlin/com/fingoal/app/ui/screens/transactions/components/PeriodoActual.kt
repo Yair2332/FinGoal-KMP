@@ -18,7 +18,6 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-
 @Composable
 fun PeriodoActual() {
     val currentDate = Clock.System.now()
@@ -47,10 +46,13 @@ fun PeriodoActual() {
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.surfaceContainer,
                 shape = RoundedCornerShape(12.dp)
             )
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(
+                horizontal = 20.dp,
+                vertical = 12.dp
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

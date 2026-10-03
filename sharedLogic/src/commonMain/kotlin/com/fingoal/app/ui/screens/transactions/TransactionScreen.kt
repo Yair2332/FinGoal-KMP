@@ -42,7 +42,7 @@ fun TransactionScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp, 16.dp, 16.dp, 40.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
