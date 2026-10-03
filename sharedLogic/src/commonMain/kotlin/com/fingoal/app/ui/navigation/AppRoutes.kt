@@ -25,27 +25,28 @@ sealed class BottomNavItem(
     val title: String,
     val icon: ImageVector
 ) {
-    object Home : BottomNavItem(
-        DashboardListRoute,
-        "Panel",
-        Icons.Default.Home
+
+    data object Home : BottomNavItem(
+        route = DashboardListRoute,
+        title = "Panel",
+        icon = Icons.Default.Home
     )
 
-    object Transactions : BottomNavItem(
-        TransactionListRoute,
-        "Flujo",
-        Icons.Default.Payments
+    data object Transactions : BottomNavItem(
+        route = TransactionListRoute,
+        title = "Flujo",
+        icon = Icons.Default.Payments
     )
 
-    object Habits : BottomNavItem(
-        HabitListRoute,
-        "Hábitos",
-        Icons.Default.Checklist
+    data object Habits : BottomNavItem(
+        route = HabitListRoute,
+        title = "Hábitos",
+        icon = Icons.Default.Checklist
     )
 
-    object Goals : BottomNavItem(
-        GoalListRoute,
-        "Metas",
-        Icons.Default.Savings
+    data object Goals : BottomNavItem(
+        route = GoalListRoute,
+        title = "Metas",
+        icon = Icons.Default.Savings
     )
 }
