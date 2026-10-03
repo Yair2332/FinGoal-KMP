@@ -23,12 +23,16 @@ class GoalRepositoryImpl(
 ) : GoalRepository {
 
     override fun getGoals(): Flow<List<Goal>> {
-        return goalDao.getAllGoals().map { list -> list.map { it.toDomain() } }
+        return goalDao.getAllGoals().map { list ->
+            list.map { it.toDomain() }
+        }
     }
 
     override suspend fun syncGoals() {
         try {
-            val userId = userPreferences.userId.firstOrNull() ?: throw Exception("No autorizado")
+            val userId = userPreferences.userId.firstOrNull()
+                ?: throw Exception("No autorizado")
+
             val remoteGoals = goalApiService.getGoals(userId)
 
             val localEntities = remoteGoals.map { dto ->
@@ -45,15 +49,22 @@ class GoalRepositoryImpl(
                 )
             }
 
-            goalDao.clearAllGoals()
-            goalDao.insertGoals(localEntities)
+            goalDao.replaceAllGoals(localEntities)
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    override suspend fun addGoal(title: String, description: String, targetAmount: Double, imageUrl: String) {
-        val userId = userPreferences.userId.firstOrNull() ?: throw Exception("No autorizado")
+    override suspend fun addGoal(
+        title: String,
+        description: String,
+        targetAmount: Double,
+        imageUrl: String
+    ) {
+        val userId = userPreferences.userId.firstOrNull()
+            ?: throw Exception("No autorizado")
+
         val request = GoalRequest(
             userId = userId,
             title = title,
@@ -77,6 +88,7 @@ class GoalRepositoryImpl(
             status = responseDto.status ?: "",
             localImagePath = responseDto.localImagePath ?: ""
         )
+
         goalDao.insertGoal(localEntity)
     }
 
@@ -87,12 +99,13 @@ class GoalRepositoryImpl(
             targetAmount = goal.targetAmount,
             localImagePath = goal.localImagePath
         )
-        val response = goalApiService.updateGoal(
+
+        goalApiService.updateGoal(
             goal.remoteId,
             request
         )
-        goalDao.updateGoal(goal.toEntity())
 
+        goalDao.updateGoal(goal.toEntity())
     }
 
     override suspend fun deleteGoal(goal: Goal) {
@@ -100,19 +113,41 @@ class GoalRepositoryImpl(
         goalDao.deleteByRemoteId(goal.remoteId)
     }
 
-    override suspend fun addContribution(goalId: String, userId: String, amount: Double) {
-        val request = ContributionRequest(goalId, userId, amount)
+    override suspend fun addContribution(
+        goalId: String,
+        userId: String,
+        amount: Double
+    ) {
+        val request = ContributionRequest(
+            goalId,
+            userId,
+            amount
+        )
+
         goalApiService.addContribution(request)
 
         val localGoal = goalDao.getGoalByRemoteId(goalId)
+
         if (localGoal != null) {
-            val updatedGoal = localGoal.copy(currentAmount = localGoal.currentAmount + amount)
+            val updatedGoal = localGoal.copy(
+                currentAmount = localGoal.currentAmount + amount
+            )
+
             goalDao.updateGoal(updatedGoal)
         }
     }
 
-    override suspend fun withdraw(goalId: String, userId: String, amount: Double) {
-        val request = ContributionRequest(goalId, userId, amount)
+    override suspend fun withdraw(
+        goalId: String,
+        userId: String,
+        amount: Double
+    ) {
+        val request = ContributionRequest(
+            goalId,
+            userId,
+            amount
+        )
+
         goalApiService.withdraw(request)
         syncGoals()
     }

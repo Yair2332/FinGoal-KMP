@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GoalDao {
+
     @Query("SELECT * FROM goals ORDER BY createdAt DESC")
     fun getAllGoals(): Flow<List<GoalEntity>>
 
@@ -14,6 +15,12 @@ interface GoalDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGoals(goals: List<GoalEntity>)
+
+    @Transaction
+    suspend fun replaceAllGoals(goals: List<GoalEntity>) {
+        clearAllGoals()
+        insertGoals(goals)
+    }
 
     @Update
     suspend fun updateGoal(goal: GoalEntity)
@@ -27,13 +34,15 @@ interface GoalDao {
     @Query("SELECT * FROM goals WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getGoalByRemoteId(remoteId: String): GoalEntity?
 
-    @Query("""
-    SELECT * FROM goals 
-    WHERE currentAmount < targetAmount 
-    AND targetAmount > 0 
-    ORDER BY (currentAmount * 1.0 / targetAmount) DESC 
-    LIMIT 1
-""")
+    @Query(
+        """
+        SELECT * FROM goals
+        WHERE currentAmount < targetAmount
+        AND targetAmount > 0
+        ORDER BY (currentAmount * 1.0 / targetAmount) DESC
+        LIMIT 1
+        """
+    )
     fun getTopGoal(): Flow<GoalEntity?>
 
     @Query("SELECT SUM(currentAmount) FROM goals WHERE createdAt >= :startOfMonth")
@@ -41,5 +50,4 @@ interface GoalDao {
 
     @Query("DELETE FROM goals WHERE remoteId = :remoteId")
     suspend fun deleteByRemoteId(remoteId: String)
-
 }

@@ -25,8 +25,14 @@ class HabitRepositoryImpl(
 ) : HabitRepository {
 
     private fun getTodayString(): String {
-        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        return "${now.year}-${now.monthNumber.toString().padStart(2, '0')}-${now.dayOfMonth.toString().padStart(2, '0')}"
+        val now = Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+
+        return "${now.year}-${
+            now.monthNumber.toString().padStart(2, '0')
+        }-${
+            now.dayOfMonth.toString().padStart(2, '0')
+        }"
     }
 
     override fun getHabits(): Flow<List<Habit>> {
@@ -37,10 +43,13 @@ class HabitRepositoryImpl(
 
     override suspend fun syncHabits() {
         try {
-            val userId = userPreferences.userId.firstOrNull() ?: throw Exception("No autorizado")
+            val userId = userPreferences.userId.firstOrNull()
+                ?: throw Exception("No autorizado")
+
             val todayStr = getTodayString()
 
             val remote = api.getHabits(userId, todayStr)
+
             val entities = remote.map { dto ->
                 HabitEntity(
                     remoteId = dto.id ?: "",
@@ -53,8 +62,9 @@ class HabitRepositoryImpl(
                     completedToday = dto.completedToday ?: false
                 )
             }
-            dao.clearAllHabits()
-            dao.insertHabits(entities)
+
+            dao.replaceAllHabits(entities)
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -62,7 +72,6 @@ class HabitRepositoryImpl(
 
     override suspend fun toggleHabit(habitId: String) {
         try {
-
             val todayStr = getTodayString()
 
             val response = api.toggleHabit(
@@ -72,23 +81,18 @@ class HabitRepositoryImpl(
                 )
             )
 
-
             val currentHabit = dao.getHabitByRemoteId(habitId)
-
 
             val completedToday = response.completedToday
             val streak = response.streak
 
             if (currentHabit != null) {
-
-
                 dao.updateHabit(
                     currentHabit.copy(
                         completedToday = completedToday,
                         streak = streak
                     )
                 )
-
             } else {
                 println("[HabitDebug] CURRENT LOCAL HABIT IS NULL")
             }
@@ -118,7 +122,9 @@ class HabitRepositoryImpl(
     }
 
     override suspend fun createHabit(habit: Habit) {
-        val userId = userPreferences.userId.firstOrNull() ?: throw Exception("No autorizado")
+        val userId = userPreferences.userId.firstOrNull()
+            ?: throw Exception("No autorizado")
+
         val newHabit = HabitDto(
             id = "",
             title = habit.name,
@@ -130,6 +136,7 @@ class HabitRepositoryImpl(
             completedToday = false,
             userId = userId
         )
+
         api.createHabit(newHabit)
         syncHabits()
     }

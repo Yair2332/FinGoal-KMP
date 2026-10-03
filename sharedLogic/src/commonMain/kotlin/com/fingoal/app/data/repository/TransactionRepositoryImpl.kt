@@ -30,7 +30,8 @@ class TransactionRepositoryImpl(
             val userId = userPreferences.userId.firstOrNull()
                 ?: throw Exception("Usuario no logueado")
 
-            val remoteTransactions = transactionApiService.getTransactions(userId)
+            val remoteTransactions =
+                transactionApiService.getTransactions(userId)
 
             val localEntities = remoteTransactions.map { dto ->
                 TransactionEntity(
@@ -44,16 +45,17 @@ class TransactionRepositoryImpl(
                 )
             }
 
-            transactionDao.clearAllTransactions()
-            localEntities.forEach { transaction ->
-                transactionDao.insertTransaction(transaction)
-            }
+            transactionDao.replaceAllTransactions(localEntities)
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    override suspend fun deleteTransaction(localId: Long, remoteId: String) {
+    override suspend fun deleteTransaction(
+        localId: Long,
+        remoteId: String
+    ) {
         try {
             transactionApiService.deleteTransaction(remoteId)
             transactionDao.deleteById(localId)
@@ -63,10 +65,23 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override suspend fun addTransaction(title: String, amount: Double, category: String, isIncome: Boolean, description: String) {
+    override suspend fun addTransaction(
+        title: String,
+        amount: Double,
+        category: String,
+        isIncome: Boolean,
+        description: String
+    ) {
         try {
-            val userId = userPreferences.userId.firstOrNull() ?: throw Exception("No autorizado")
-            val type = if (isIncome) "INCOME" else "EXPENSE"
+            val userId = userPreferences.userId.firstOrNull()
+                ?: throw Exception("No autorizado")
+
+            val type = if (isIncome) {
+                "INCOME"
+            } else {
+                "EXPENSE"
+            }
+
             val request = TransactionRequest(
                 userId = userId,
                 title = title,
@@ -76,7 +91,8 @@ class TransactionRepositoryImpl(
                 type = type
             )
 
-            val responseDto = transactionApiService.createTransaction(request)
+            val responseDto =
+                transactionApiService.createTransaction(request)
 
             val localEntity = TransactionEntity(
                 remoteId = responseDto.id ?: "",
@@ -87,6 +103,7 @@ class TransactionRepositoryImpl(
                 date = responseDto.createdAt ?: 0L,
                 isIncome = responseDto.type == "INCOME"
             )
+
             transactionDao.insertTransaction(localEntity)
 
         } catch (e: Exception) {
@@ -96,11 +113,24 @@ class TransactionRepositoryImpl(
     }
 
     override suspend fun updateTransaction(
-        localId: Long, remoteId: String, title: String, amount: Double, category: String, isIncome: Boolean, description: String
+        localId: Long,
+        remoteId: String,
+        title: String,
+        amount: Double,
+        category: String,
+        isIncome: Boolean,
+        description: String
     ) {
         try {
-            val userId = userPreferences.userId.firstOrNull() ?: throw Exception("No autorizado")
-            val type = if (isIncome) "INCOME" else "EXPENSE"
+            val userId = userPreferences.userId.firstOrNull()
+                ?: throw Exception("No autorizado")
+
+            val type = if (isIncome) {
+                "INCOME"
+            } else {
+                "EXPENSE"
+            }
+
             val request = TransactionRequest(
                 userId = userId,
                 title = title,
@@ -110,10 +140,18 @@ class TransactionRepositoryImpl(
                 type = type
             )
 
-            val responseDto = transactionApiService.updateTransaction(remoteId, request)
+            val responseDto =
+                transactionApiService.updateTransaction(
+                    remoteId,
+                    request
+                )
 
-            val originalTransaction = transactionDao.getTransactionById(localId)
-            val originalDate = originalTransaction?.date ?: Clock.System.now().toEpochMilliseconds()
+            val originalTransaction =
+                transactionDao.getTransactionById(localId)
+
+            val originalDate =
+                originalTransaction?.date
+                    ?: Clock.System.now().toEpochMilliseconds()
 
             val updatedEntity = TransactionEntity(
                 id = localId,
@@ -127,6 +165,7 @@ class TransactionRepositoryImpl(
             )
 
             transactionDao.insertTransaction(updatedEntity)
+
         } catch (e: Exception) {
             e.printStackTrace()
             throw e

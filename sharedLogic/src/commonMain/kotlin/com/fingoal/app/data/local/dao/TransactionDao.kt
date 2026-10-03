@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.fingoal.app.data.local.entities.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -14,8 +15,19 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions ORDER BY date DESC")
     fun getAllTransactions(): Flow<List<TransactionEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTransaction(transaction: TransactionEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTransactions(transactions: List<TransactionEntity>)
+
+    @Transaction
+    suspend fun replaceAllTransactions(
+        transactions: List<TransactionEntity>
+    ) {
+        clearAllTransactions()
+        insertTransactions(transactions)
+    }
 
     @Delete
     suspend fun deleteTransaction(transaction: TransactionEntity)
@@ -35,10 +47,19 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
     suspend fun getTransactionById(id: Long): TransactionEntity?
 
-    @Query("SELECT SUM(amount) FROM transactions WHERE isIncome = 0 AND date >= :startOfMonth")
-    fun getExpensesForCurrentMonth(startOfMonth: Long): Flow<Double?>
+    @Query(
+        "SELECT SUM(amount) FROM transactions " +
+                "WHERE isIncome = 0 AND date >= :startOfMonth"
+    )
+    fun getExpensesForCurrentMonth(
+        startOfMonth: Long
+    ): Flow<Double?>
 
-    @Query("SELECT * FROM transactions WHERE date >= :startOfMonth ORDER BY date ASC")
-    fun getTransactionsForCurrentMonth(startOfMonth: Long): Flow<List<TransactionEntity>>
-
+    @Query(
+        "SELECT * FROM transactions " +
+                "WHERE date >= :startOfMonth ORDER BY date ASC"
+    )
+    fun getTransactionsForCurrentMonth(
+        startOfMonth: Long
+    ): Flow<List<TransactionEntity>>
 }

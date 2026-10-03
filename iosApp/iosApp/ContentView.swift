@@ -1,5 +1,5 @@
 import SwiftUI
-import SharedLogic
+import SharedUI
 
 struct ContentView: UIViewControllerRepresentable {
 
