@@ -3,10 +3,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
     alias(libs.plugins.kotlinSerialization)
+
 }
+
 kotlin {
     androidLibrary {
         namespace = "com.fingoal.app.sharedLogic"
@@ -31,6 +35,21 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+
+            implementation(libs.compose.material.icons.extended)
+
+            // Compose Resources
+            implementation(libs.compose.components.resources)
+
+            // Compose Multiplatform
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.material3)
+
+            // Navigation
+            implementation(libs.androidx.navigation.compose)
+
             // Room
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
