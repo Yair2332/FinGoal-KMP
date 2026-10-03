@@ -1,36 +1,17 @@
 import SwiftUI
+import SharedLogic
 
-struct ContentView: View {
+struct ContentView: UIViewControllerRepresentable {
 
-    @State private var appState: AppState = .loading
-
-    enum AppState {
-        case loading
-        case auth
-        case main
+    func makeUIViewController(
+        context: Context
+    ) -> UIViewController {
+        MainViewControllerKt.MainViewController()
     }
 
-    var body: some View {
-        Group {
-            switch appState {
-
-            case .loading:
-                LoadingView()
-
-            case .auth:
-                AuthNavigation(
-                    onAuthenticated: {
-                        appState = .main
-                    }
-                )
-
-            case .main:
-                MainAppNavigation(
-                    onLogout: {
-                        appState = .auth
-                    }
-                )
-            }
-        }
+    func updateUIViewController(
+        _ uiViewController: UIViewController,
+        context: Context
+    ) {
     }
 }

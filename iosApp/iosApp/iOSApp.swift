@@ -5,12 +5,13 @@ import SharedLogic
 struct iosApp: App {
 
     init() {
-        initializeKoin()
+        initKoin()
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .ignoresSafeArea()
         }
     }
 }

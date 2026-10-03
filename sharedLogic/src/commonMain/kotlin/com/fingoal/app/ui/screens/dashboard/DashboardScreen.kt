@@ -62,7 +62,7 @@ fun DashboardScreen(
         if (state.chartData.isNotEmpty()) {
             item {
                 Text(
-                    text = "Flujo del mes",
+                    text = "Flujo de dinero",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 8.dp)
