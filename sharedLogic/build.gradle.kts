@@ -56,6 +56,7 @@ kotlin {
 
             // Koin
             implementation(libs.koin.core)
+            implementation("io.insert-koin:koin-compose:1.1.5")
 
             // Ktor
             implementation(libs.ktor.client.core)
@@ -71,6 +72,10 @@ kotlin {
 
             // DataStore
             implementation(libs.androidx.datastore.preferences)
+
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor2)
+
         }
 
         androidMain.dependencies {
