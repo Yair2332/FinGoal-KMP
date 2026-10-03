@@ -1,6 +1,5 @@
 package com.fingoal.app.ui.screens.goals.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -37,10 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.fingoal.app.domain.model.Goal
-import fingoal.sharedlogic.generated.resources.Res
-import fingoal.sharedlogic.generated.resources.metas
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun GoalItem(
@@ -117,10 +114,8 @@ fun GoalItem(
                     .fillMaxWidth()
                     .height(160.dp)
             ) {
-                Image(
-                    painter = painterResource(
-                        Res.drawable.metas
-                    ),
+                AsyncImage(
+                    model = goal.localImagePath,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -331,3 +326,4 @@ fun GoalItem(
         }
     }
 }
+

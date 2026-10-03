@@ -33,7 +33,7 @@ import com.fingoal.app.presentation.components.ConfirmationDialog
 import com.fingoal.app.presentation.components.EmptyStateComponent
 import com.fingoal.app.presentation.goals.GoalViewModel
 import com.fingoal.app.presentation.screens.goals.components.GoalFormContent
-import com.fingoal.app.presentation.screens.goals.components.GoalItem
+import com.fingoal.app.ui.screens.goals.components.GoalItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
