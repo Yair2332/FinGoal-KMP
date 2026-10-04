@@ -51,6 +51,13 @@ import fingoal.sharedlogic.generated.resources.gooli
 import fingoal.sharedlogic.generated.resources.grenny
 import fingoal.sharedlogic.generated.resources.rosy
 import fingoal.sharedlogic.generated.resources.sun
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 
 
 /*
@@ -164,6 +171,18 @@ fun AssistantFinGoal(
     val characterConfig =
         getCharacterConfig(character)
 
+    var offsetX by remember {
+        mutableFloatStateOf(0f)
+    }
+
+    var offsetY by remember {
+        mutableFloatStateOf(0f)
+    }
+
+    var initialized by remember {
+        mutableStateOf(false)
+    }
+
 
     /*
      * ========================================================
@@ -171,17 +190,54 @@ fun AssistantFinGoal(
      * ========================================================
      */
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier.fillMaxSize()
     ) {
+
+        val density = androidx.compose.ui.platform.LocalDensity.current
+
+        val buttonSize = with(density) {
+            64.dp.toPx()
+        }
+
+        val edgePadding = with(density) {
+            20.dp.toPx()
+        }
+
+        val bottomPadding = with(density) {
+            90.dp.toPx()
+        }
+
+        val screenWidth = constraints.maxWidth.toFloat()
+        val screenHeight = constraints.maxHeight.toFloat()
+
+        // Posición inicial: abajo a la derecha
+        if (
+            !initialized &&
+            screenWidth > 0f &&
+            screenHeight > 0f
+        ) {
+            offsetX =
+                screenWidth -
+                        buttonSize -
+                        edgePadding
+
+            offsetY =
+                screenHeight -
+                        buttonSize -
+                        bottomPadding
+
+            initialized = true
+        }
+
         Box(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .navigationBarsPadding()
-                .padding(
-                    end = 20.dp,
-                    bottom = 5.dp
-                )
+                .offset {
+                    IntOffset(
+                        x = offsetX.roundToInt(),
+                        y = offsetY.roundToInt()
+                    )
+                }
                 .size(64.dp)
                 .shadow(
                     elevation = 10.dp,
@@ -189,14 +245,64 @@ fun AssistantFinGoal(
                 )
                 .clip(CircleShape)
                 .background(characterConfig.color)
+                .pointerInput(Unit) {
+                    detectDragGestures(
+
+                        // Movimiento libre
+                        onDrag = { change, dragAmount ->
+
+                            change.consume()
+
+                            offsetX += dragAmount.x
+                            offsetY += dragAmount.y
+
+                            // No puede salir de la pantalla
+                            offsetX = offsetX.coerceIn(
+                                0f,
+                                screenWidth - buttonSize
+                            )
+
+                            offsetY = offsetY.coerceIn(
+                                0f,
+                                screenHeight - buttonSize
+                            )
+                        },
+
+                        // Cuando soltás el botón
+                        onDragEnd = {
+
+                            val distanceToLeft = offsetX
+
+                            val distanceToRight =
+                                screenWidth -
+                                        buttonSize -
+                                        offsetX
+
+                            // Se pega solamente al lado más cercano
+                            if (distanceToLeft < distanceToRight) {
+
+                                offsetX = edgePadding
+
+                            } else {
+
+                                offsetX =
+                                    screenWidth -
+                                            buttonSize -
+                                            edgePadding
+                            }
+                        }
+                    )
+                }
                 .clickable {
                     showAssistant = true
                 },
             contentAlignment = Alignment.Center
         ) {
+
             Image(
                 painter = painterResource(characterResource),
-                contentDescription = "Abrir asistente ${characterConfig.name}",
+                contentDescription =
+                    "Abrir asistente ${characterConfig.name}",
                 modifier = Modifier
                     .size(58.dp)
                     .clip(CircleShape),

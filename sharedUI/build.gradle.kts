@@ -38,7 +38,6 @@ kotlin {
 
         commonMain.dependencies {
             api(project(":sharedLogic"))
-
             // Compose
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
