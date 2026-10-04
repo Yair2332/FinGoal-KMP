@@ -8,6 +8,7 @@ import com.fingoal.app.domain.usecase.transactions.DeleteTransactionUseCase
 import com.fingoal.app.domain.usecase.transactions.GetTransactionsUseCase
 import com.fingoal.app.domain.usecase.transactions.SyncTransactionsUseCase
 import com.fingoal.app.domain.usecase.transactions.UpdateTransactionUseCase
+import com.fingoal.app.ui.components.AssistantQuestion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,49 +24,96 @@ class TransactionViewModel(
     private val updateTransactionUseCase: UpdateTransactionUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(TransactionUiState())
-    val uiState: StateFlow<TransactionUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(
+        TransactionUiState()
+    )
+
+    val uiState: StateFlow<TransactionUiState> =
+        _uiState.asStateFlow()
 
     init {
         loadTransactions()
         syncWithServer()
     }
 
-    fun showAddSheet() = _uiState.update {
-        it.copy(
-            showBottomSheet = true,
-            editingTransaction = null
-        )
+    /*
+     * ============================================================
+     * BOTTOM SHEET
+     * ============================================================
+     */
+
+    fun showAddSheet() {
+        _uiState.update {
+            it.copy(
+                showBottomSheet = true,
+                editingTransaction = null
+            )
+        }
     }
 
-    fun showEditSheet(transaction: Transaction) = _uiState.update {
-        it.copy(
-            showBottomSheet = true,
-            editingTransaction = transaction
-        )
+    fun showEditSheet(
+        transaction: Transaction
+    ) {
+        _uiState.update {
+            it.copy(
+                showBottomSheet = true,
+                editingTransaction = transaction
+            )
+        }
     }
 
-    fun hideSheet() = _uiState.update {
-        it.copy(
-            showBottomSheet = false,
-            editingTransaction = null
-        )
+    fun hideSheet() {
+        _uiState.update {
+            it.copy(
+                showBottomSheet = false,
+                editingTransaction = null
+            )
+        }
     }
 
-    fun showDeleteDialog(transaction: Transaction) = _uiState.update {
-        it.copy(transactionToDelete = transaction)
+    /*
+     * ============================================================
+     * DELETE
+     * ============================================================
+     */
+
+    fun showDeleteDialog(
+        transaction: Transaction
+    ) {
+        _uiState.update {
+            it.copy(
+                transactionToDelete = transaction
+            )
+        }
     }
 
-    fun hideDeleteDialog() = _uiState.update {
-        it.copy(transactionToDelete = null)
+    fun hideDeleteDialog() {
+        _uiState.update {
+            it.copy(
+                transactionToDelete = null
+            )
+        }
     }
+
+    /*
+     * ============================================================
+     * CARGAR TRANSACCIONES
+     * ============================================================
+     */
 
     private fun loadTransactions() {
-        _uiState.update { it.copy(isLoading = true) }
+
+        _uiState.update {
+            it.copy(
+                isLoading = true
+            )
+        }
 
         viewModelScope.launch {
+
             getTransactionsUseCase()
                 .catch { error ->
+
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -74,21 +122,48 @@ class TransactionViewModel(
                     }
                 }
                 .collect { list ->
+
+                    /*
+                     * Acá estaba el problema.
+                     *
+                     * Cada vez que llegan las transacciones,
+                     * también construimos las preguntas del
+                     * asistente.
+                     */
+
+                    val assistantQuestions =
+                        buildAssistantQuestions(list)
+
                     _uiState.update {
+
                         it.copy(
                             isLoading = false,
-                            transactions = list
+                            transactions = list,
+                            assistantQuestions = assistantQuestions
                         )
                     }
                 }
         }
     }
 
+    /*
+     * ============================================================
+     * SINCRONIZACIÓN
+     * ============================================================
+     */
+
     private fun syncWithServer() {
+
         viewModelScope.launch {
             syncTransactionsUseCase()
         }
     }
+
+    /*
+     * ============================================================
+     * INSERTAR
+     * ============================================================
+     */
 
     fun insertTransaction(
         title: String,
@@ -97,10 +172,17 @@ class TransactionViewModel(
         isIncome: Boolean,
         description: String
     ) {
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+
+            _uiState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
 
             try {
+
                 addTransactionUseCase(
                     title,
                     amount,
@@ -112,6 +194,7 @@ class TransactionViewModel(
                 hideSheet()
 
             } catch (e: Exception) {
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -122,11 +205,22 @@ class TransactionViewModel(
         }
     }
 
+    /*
+     * ============================================================
+     * ELIMINAR
+     * ============================================================
+     */
+
     fun deleteTransaction() {
-        val transaction = _uiState.value.transactionToDelete ?: return
+
+        val transaction =
+            _uiState.value.transactionToDelete
+                ?: return
 
         viewModelScope.launch {
+
             try {
+
                 deleteTransactionUseCase(
                     transaction.id,
                     transaction.remoteId
@@ -135,14 +229,22 @@ class TransactionViewModel(
                 hideDeleteDialog()
 
             } catch (e: Exception) {
+
                 _uiState.update {
                     it.copy(
-                        errorMessage = "Error al borrar: ${e.message}"
+                        errorMessage =
+                            "Error al borrar: ${e.message}"
                     )
                 }
             }
         }
     }
+
+    /*
+     * ============================================================
+     * EDITAR
+     * ============================================================
+     */
 
     fun editTransaction(
         localId: Long,
@@ -153,12 +255,17 @@ class TransactionViewModel(
         isIncome: Boolean,
         description: String
     ) {
+
         viewModelScope.launch {
 
-
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
 
             try {
+
                 updateTransactionUseCase(
                     localId = localId,
                     remoteId = remoteId,
@@ -169,19 +276,103 @@ class TransactionViewModel(
                     description = description
                 )
 
-
                 hideSheet()
 
             } catch (e: Exception) {
 
-
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error al editar: ${e.message}"
+                        errorMessage =
+                            "Error al editar: ${e.message}"
                     )
                 }
             }
         }
+    }
+
+    /*
+     * ============================================================
+     * PREGUNTAS DEL ASISTENTE
+     * ============================================================
+     */
+
+    private fun buildAssistantQuestions(
+        transactions: List<Transaction>
+    ): List<AssistantQuestion> {
+
+        val totalIngresos = transactions
+            .filter {
+                it.isIncome
+            }
+            .sumOf {
+                it.amount
+            }
+
+        val totalGastos = transactions
+            .filter {
+                !it.isIncome
+            }
+            .sumOf {
+                it.amount
+            }
+
+        val cantidadTotal =
+            transactions.size
+
+        val cantidadIngresos =
+            transactions.count {
+                it.isIncome
+            }
+
+        val cantidadGastos =
+            transactions.count {
+                !it.isIncome
+            }
+
+        return listOf(
+
+            AssistantQuestion(
+                question = "¿Cuánto dinero ingresé?",
+                answer =
+                    "En total ingresaste $${formatAmount(totalIngresos)}."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuánto gasté?",
+                answer =
+                    "En total gastaste $${formatAmount(totalGastos)}."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántas transacciones tengo?",
+                answer =
+                    "Tienes $cantidadTotal transacciones registradas."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántos ingresos tengo?",
+                answer =
+                    "Tienes $cantidadIngresos ingresos registrados."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántos gastos tengo?",
+                answer =
+                    "Tienes $cantidadGastos gastos registrados."
+            )
+        )
+    }
+
+    /*
+     * ============================================================
+     * FORMATO DE DINERO
+     * ============================================================
+     */
+
+    private fun formatAmount(
+        amount: Double
+    ): String {
+        return amount.toString()
     }
 }

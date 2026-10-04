@@ -14,6 +14,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,44 +23,75 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.fingoal.app.presentation.transactions.TransactionViewModel
+import com.fingoal.app.ui.components.AssistantFinGoal
 import com.fingoal.app.ui.components.ConfirmationDialog
 import com.fingoal.app.ui.components.EmptyStateComponent
 import com.fingoal.app.ui.screens.transactions.components.TransactionFormContent
 import com.fingoal.app.ui.screens.transactions.components.TransactionItem
 import com.fingoal.app.ui.screens.transactions.components.TransactionListHeader
-import androidx.compose.material3.ModalBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionScreen(
     viewModel: TransactionViewModel
 ) {
+
     val uiState by viewModel.uiState.collectAsState()
 
-    val transaccionesPorFecha = uiState.transactions.groupBy {
-        it.date.toFormattedDate()
-    }
+    val transaccionesPorFecha =
+        uiState.transactions.groupBy {
+            it.date.toFormattedDate()
+        }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+                MaterialTheme.colorScheme.background
+            )
     ) {
+
+        /*
+         * ========================================================
+         * LISTA DE TRANSACCIONES
+         * ========================================================
+         */
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+
+            contentPadding = PaddingValues(
+                bottom = 80.dp
+            ),
+
+            verticalArrangement =
+                Arrangement.spacedBy(8.dp)
         ) {
 
-            item {
-                val totalIngresos = uiState.transactions
-                    .filter { it.isIncome }
-                    .sumOf { it.amount }
+            /*
+             * HEADER
+             */
 
-                val totalGastos = uiState.transactions
-                    .filter { !it.isIncome }
-                    .sumOf { it.amount }
+            item {
+
+                val totalIngresos =
+                    uiState.transactions
+                        .filter {
+                            it.isIncome
+                        }
+                        .sumOf {
+                            it.amount
+                        }
+
+                val totalGastos =
+                    uiState.transactions
+                        .filter {
+                            !it.isIncome
+                        }
+                        .sumOf {
+                            it.amount
+                        }
 
                 TransactionListHeader(
                     ingresos = totalIngresos,
@@ -67,47 +99,95 @@ fun TransactionScreen(
                 )
             }
 
-            if (uiState.transactions.isEmpty() && !uiState.isLoading) {
+            /*
+             * ESTADO VACÍO
+             */
+
+            if (
+                uiState.transactions.isEmpty() &&
+                !uiState.isLoading
+            ) {
+
                 item {
+
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .padding(
+                                top = 48.dp
+                            ),
+
+                        horizontalAlignment =
+                            Alignment.CenterHorizontally
                     ) {
+
                         EmptyStateComponent(
-                            message = "¡No tienes transacciones aún!"
+                            message =
+                                "¡No tienes transacciones aún!"
                         )
                     }
                 }
+
             } else {
-                transaccionesPorFecha.forEach { (fechaLocal, lista) ->
+
+                /*
+                 * TRANSACCIONES AGRUPADAS POR FECHA
+                 */
+
+                transaccionesPorFecha.forEach {
+                        (fechaLocal, lista) ->
 
                     item {
+
                         Text(
                             text = fechaLocal,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 8.dp),
-                            color = MaterialTheme.colorScheme.onSurface
+
+                            style =
+                                MaterialTheme
+                                    .typography
+                                    .titleMedium,
+
+                            modifier =
+                                Modifier.padding(
+                                    top = 8.dp
+                                ),
+
+                            color =
+                                MaterialTheme
+                                    .colorScheme
+                                    .onSurface
                         )
 
                         Divider(
-                            modifier = Modifier.padding(vertical = 1.dp)
+                            modifier =
+                                Modifier.padding(
+                                    vertical = 1.dp
+                                )
                         )
                     }
 
                     items(
                         items = lista,
-                        key = { it.id }
+                        key = {
+                            it.id
+                        }
                     ) { transaction ->
 
                         TransactionItem(
                             transaction = transaction,
+
                             onEdit = {
-                                viewModel.showEditSheet(transaction)
+                                viewModel
+                                    .showEditSheet(
+                                        transaction
+                                    )
                             },
+
                             onDelete = {
-                                viewModel.showDeleteDialog(transaction)
+                                viewModel
+                                    .showDeleteDialog(
+                                        transaction
+                                    )
                             }
                         )
                     }
@@ -115,39 +195,100 @@ fun TransactionScreen(
             }
         }
 
+        /*
+         * ========================================================
+         * LOADING
+         * ========================================================
+         */
+
         if (uiState.isLoading) {
+
             CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
+                modifier =
+                    Modifier.align(
+                        Alignment.Center
+                    )
             )
         }
 
-        if (uiState.transactionToDelete != null) {
+        /*
+         * ========================================================
+         * DELETE DIALOG
+         * ========================================================
+         */
+
+        if (
+            uiState.transactionToDelete != null
+        ) {
+
             ConfirmationDialog(
+
                 onDismiss = {
                     viewModel.hideDeleteDialog()
                 },
+
                 onConfirm = {
                     viewModel.deleteTransaction()
                 },
+
                 title = "¿Eliminar transacción?",
-                text = "¿Seguro que quieres eliminar '${uiState.transactionToDelete?.title}'?",
+
+                text =
+                    "¿Seguro que quieres eliminar " +
+                            "'${uiState.transactionToDelete?.title}'?",
+
                 confirmButtonText = "Eliminar"
             )
         }
+
+        /*
+         * ========================================================
+         * FIN GOAL ASSISTANT
+         * ========================================================
+         */
+
+        AssistantFinGoal(
+            character = "rosy",
+
+            questions =
+                uiState.assistantQuestions,
+
+            modifier =
+                Modifier.fillMaxSize()
+        )
     }
 
+    /*
+     * ============================================================
+     * BOTTOM SHEET DE TRANSACCIÓN
+     * ============================================================
+     */
+
     if (uiState.showBottomSheet) {
-        val editing = uiState.editingTransaction
+
+        val editing =
+            uiState.editingTransaction
 
         ModalBottomSheet(
             onDismissRequest = {
                 viewModel.hideSheet()
             }
         ) {
+
             TransactionFormContent(
-                initialTransaction = editing,
-                onSave = { title, amount, category, isIncome, description ->
+
+                initialTransaction =
+                    editing,
+
+                onSave = {
+                        title,
+                        amount,
+                        category,
+                        isIncome,
+                        description ->
+
                     if (editing == null) {
+
                         viewModel.insertTransaction(
                             title = title,
                             amount = amount,
@@ -155,15 +296,17 @@ fun TransactionScreen(
                             isIncome = isIncome,
                             description = description
                         )
+
                     } else {
+
                         viewModel.editTransaction(
-                            editing.id,
-                            editing.remoteId,
-                            title,
-                            amount,
-                            category,
-                            isIncome,
-                            description
+                            localId = editing.id,
+                            remoteId = editing.remoteId,
+                            title = title,
+                            amount = amount,
+                            category = category,
+                            isIncome = isIncome,
+                            description = description
                         )
                     }
                 }
