@@ -15,6 +15,7 @@ androidx-testExt = "1.2.1"
 composeMultiplatform = "1.8.0"
 material3 = "1.8.0"
 materialIcons = "1.7.3"
+kotlinxCoroutinesTest = "1.10.2"
 
 coil = "3.2.0"
 
@@ -43,6 +44,8 @@ androidx-navigation = "2.8.0-alpha13"
 
 
 [libraries]
+
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 
 # Kotlin
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
