@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,12 +38,18 @@ fun HabitSummaryCard(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth().padding( 8.dp,0.dp,8.dp,8.dp),
+        modifier = modifier.fillMaxWidth().padding( 8.dp,0.dp,8.dp,8.dp)
+            .shadow(
+            elevation = 2.dp,
+            shape = RoundedCornerShape(20.dp)
+        ),
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant
+        color = MaterialTheme.colorScheme.outlineVariant
+
     ) {
         Column(
             modifier = Modifier.padding(18.dp)
+
         ) {
             Text(
                 text = "Resumen de hábitos",

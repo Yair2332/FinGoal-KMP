@@ -307,47 +307,152 @@ class TransactionViewModel(
         transactions: List<Transaction>
     ): List<AssistantQuestion> {
 
-        val totalIngresos = transactions
-            .filter {
-                it.isIncome
-            }
-            .sumOf {
-                it.amount
+        val timeZone = TimeZone.currentSystemDefault()
+
+        val now = Clock.System.now()
+            .toLocalDateTime(timeZone)
+
+        val today = now.date
+
+        val startOfMonth = LocalDate(
+            year = today.year,
+            monthNumber = today.monthNumber,
+            dayOfMonth = 1
+        )
+
+        val startOfMonthMillis = startOfMonth
+            .atStartOfDayIn(timeZone)
+            .toEpochMilliseconds()
+
+        val currentMonthTransactions = transactions.filter {
+            it.date >= startOfMonthMillis
+        }
+
+        val ingresosMes = currentMonthTransactions
+            .filter { it.isIncome }
+            .sumOf { it.amount }
+
+        val gastosMes = currentMonthTransactions
+            .filter { !it.isIncome }
+            .sumOf { it.amount }
+
+        val disponibleMes = ingresosMes - gastosMes
+
+        val cantidadTotal = transactions.size
+
+        val cantidadIngresos = transactions.count { it.isIncome }
+
+        val cantidadGastos = transactions.count { !it.isIncome }
+
+        // ---------------------------------------------------------
+        // DÍAS DEL MES
+        // ---------------------------------------------------------
+
+        val diasDelMes = when (today.monthNumber) {
+            2 -> if (today.year % 4 == 0) 29 else 28
+            4, 6, 9, 11 -> 30
+            else -> 31
+        }
+
+        val diasTranscurridos = today.dayOfMonth.coerceAtLeast(1)
+
+        val diasRestantes = (
+                diasDelMes - today.dayOfMonth + 1
+                ).coerceAtLeast(1)
+
+        // ---------------------------------------------------------
+        // GASTO DIARIO
+        // ---------------------------------------------------------
+
+        val promedioGastoDiario =
+            gastosMes / diasTranscurridos
+
+        val gastoDiarioPermitido =
+            disponibleMes / diasRestantes
+
+        // ---------------------------------------------------------
+        // PROYECCIÓN
+        // ---------------------------------------------------------
+
+        val gastoProyectado =
+            promedioGastoDiario * diasDelMes
+
+        // ---------------------------------------------------------
+        // PORCENTAJE DE INGRESOS GASTADOS
+        // ---------------------------------------------------------
+
+        val porcentajeGastado =
+            if (ingresosMes > 0) {
+                (gastosMes / ingresosMes) * 100
+            } else {
+                0.0
             }
 
-        val totalGastos = transactions
-            .filter {
-                !it.isIncome
-            }
-            .sumOf {
-                it.amount
-            }
+        // ---------------------------------------------------------
+        // CATEGORÍA CON MAYOR GASTO
+        // ---------------------------------------------------------
 
-        val cantidadTotal =
-            transactions.size
-
-        val cantidadIngresos =
-            transactions.count {
-                it.isIncome
+        val categoriaMayorGasto = currentMonthTransactions
+            .filter { !it.isIncome }
+            .groupBy { it.category }
+            .mapValues { (_, items) ->
+                items.sumOf { it.amount }
             }
+            .maxByOrNull { it.value }
 
-        val cantidadGastos =
-            transactions.count {
-                !it.isIncome
+        // ---------------------------------------------------------
+        // GASTO MÁS GRANDE
+        // ---------------------------------------------------------
+
+        val gastoMasGrande = currentMonthTransactions
+            .filter { !it.isIncome }
+            .maxByOrNull { it.amount }
+
+        // ---------------------------------------------------------
+        // CANTIDAD DE DÍAS CON GASTOS
+        // ---------------------------------------------------------
+
+        val diasConGastos = currentMonthTransactions
+            .filter { !it.isIncome }
+            .map { transaction ->
+                transaction.date
             }
+            .distinct()
+            .size
+
+        // ---------------------------------------------------------
+        // RESPUESTAS
+        // ---------------------------------------------------------
 
         return listOf(
 
+            // =====================================================
+            // RESUMEN
+            // =====================================================
+
             AssistantQuestion(
-                question = "¿Cuánto dinero ingresé?",
-                answer =
-                    "En total ingresaste $${formatAmount(totalIngresos)}."
+                question = "¿Cuánto dinero tengo disponible?",
+                answer = if (disponibleMes >= 0) {
+                    "Después de tus gastos de este mes, " +
+                            "tienes $${formatAmount(disponibleMes)} disponibles."
+                } else {
+                    "Este mes gastaste " +
+                            "$${formatAmount(-disponibleMes)} más de lo que ingresaste."
+                }
             ),
 
             AssistantQuestion(
-                question = "¿Cuánto gasté?",
+                question = "¿Cuánto ingresé este mes?",
                 answer =
-                    "En total gastaste $${formatAmount(totalGastos)}."
+                    "Este mes ingresaste " +
+                            "$${formatAmount(ingresosMes)}."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuánto gasté este mes?",
+                answer =
+                    "Este mes gastaste " +
+                            "$${formatAmount(gastosMes)}."
             ),
 
             AssistantQuestion(
@@ -356,16 +461,213 @@ class TransactionViewModel(
                     "Tienes $cantidadTotal transacciones registradas."
             ),
 
+            // =====================================================
+            // CONTROL DIARIO
+            // =====================================================
+
             AssistantQuestion(
-                question = "¿Cuántos ingresos tengo?",
-                answer =
-                    "Tienes $cantidadIngresos ingresos registrados."
+                question = "¿Cuánto puedo gastar por día?",
+                answer = if (disponibleMes > 0) {
+                    "Puedes gastar aproximadamente " +
+                            "$${formatAmount(gastoDiarioPermitido)} por día " +
+                            "durante los $diasRestantes días restantes."
+                } else {
+                    "Actualmente no tienes dinero disponible " +
+                            "para nuevos gastos este mes."
+                }
             ),
 
             AssistantQuestion(
-                question = "¿Cuántos gastos tengo?",
+                question = "¿Cuánto gasto por día?",
                 answer =
-                    "Tienes $cantidadGastos gastos registrados."
+                    "Tu promedio de gastos diarios este mes es " +
+                            "$${formatAmount(promedioGastoDiario)}."
+            ),
+
+            AssistantQuestion(
+                question = "¿Estoy gastando demasiado?",
+                answer = when {
+                    gastosMes == 0.0 ->
+                        "Todavía no registraste gastos este mes."
+
+                    disponibleMes <= 0 ->
+                        "Sí. Tus gastos ya alcanzaron o superaron " +
+                                "el dinero que ingresaste este mes."
+
+                    promedioGastoDiario > gastoDiarioPermitido ->
+                        "Sí. Tu ritmo actual de gastos está por encima " +
+                                "del límite diario recomendado."
+
+                    else ->
+                        "No. Por ahora estás dentro de un ritmo de gasto " +
+                                "compatible con tu dinero disponible."
+                }
+            ),
+
+            // =====================================================
+            // PROYECCIONES
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuánto voy a gastar al terminar el mes?",
+                answer =
+                    "Si mantienes tu ritmo actual, " +
+                            "podrías terminar el mes gastando aproximadamente " +
+                            "$${formatAmount(gastoProyectado)}."
+            ),
+
+            AssistantQuestion(
+                question = "¿Voy a llegar con dinero a fin de mes?",
+                answer = when {
+                    disponibleMes <= 0 ->
+                        "Si mantienes este ritmo, podrías llegar a fin de mes " +
+                                "sin dinero disponible."
+
+                    gastoProyectado < ingresosMes ->
+                        "Sí. Manteniendo tu ritmo actual, " +
+                                "podrías conservar aproximadamente " +
+                                "$${formatAmount(ingresosMes - gastoProyectado)}."
+
+                    else ->
+                        "Tu ritmo actual indica que podrías gastar " +
+                                "más de lo que ingresaste."
+                }
+            ),
+
+            // =====================================================
+            // INGRESOS
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Qué porcentaje de mis ingresos gasté?",
+                answer =
+                    if (ingresosMes > 0) {
+                        "Has gastado aproximadamente " +
+                                "${formatAmount(porcentajeGastado)}% " +
+                                "de tus ingresos de este mes."
+                    } else {
+                        "Todavía no tienes ingresos registrados este mes."
+                    }
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuánto dinero me queda de mis ingresos?",
+                answer =
+                    if (ingresosMes > 0) {
+                        "De los $${formatAmount(ingresosMes)} " +
+                                "que ingresaron este mes, " +
+                                "te quedan $${formatAmount(disponibleMes)}."
+                    } else {
+                        "No tienes ingresos registrados este mes."
+                    }
+            ),
+
+            // =====================================================
+            // CATEGORÍAS
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿En qué estoy gastando más?",
+                answer = categoriaMayorGasto?.let {
+                    "Tu categoría con mayor gasto este mes es " +
+                            "\"${it.key}\", con " +
+                            "$${formatAmount(it.value)}."
+                } ?: "Todavía no tienes gastos registrados este mes."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuál fue mi gasto más grande?",
+                answer = gastoMasGrande?.let {
+                    "\"${it.title}\" fue tu gasto más grande este mes, " +
+                            "por $${formatAmount(it.amount)}."
+                } ?: "Todavía no tienes gastos registrados este mes."
+            ),
+
+            // =====================================================
+            // FRECUENCIA
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuántos días gasté este mes?",
+                answer =
+                    "Registraste gastos en $diasConGastos días " +
+                            "diferentes durante este mes."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántos gastos hice este mes?",
+                answer =
+                    "Este mes registraste $cantidadGastos gastos."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántos ingresos tuve este mes?",
+                answer =
+                    "Este mes registraste $cantidadIngresos ingresos."
+            ),
+
+            // =====================================================
+            // AHORRO
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuánto podría ahorrar este mes?",
+                answer = if (disponibleMes > 0) {
+                    "Si no realizas nuevos gastos innecesarios, " +
+                            "podrías terminar el mes con " +
+                            "$${formatAmount(disponibleMes)} disponibles para ahorrar."
+                } else {
+                    "Actualmente no tienes dinero disponible " +
+                            "para destinar al ahorro."
+                }
+            ),
+
+            AssistantQuestion(
+                question = "¿Estoy ahorrando o gastando más de lo que ingreso?",
+                answer = when {
+                    disponibleMes > 0 ->
+                        "Actualmente estás gastando menos de lo que ingresas. " +
+                                "Tienes $${formatAmount(disponibleMes)} disponibles."
+
+                    disponibleMes == 0.0 ->
+                        "Actualmente estás gastando prácticamente todo " +
+                                "lo que ingresas."
+
+                    else ->
+                        "Estás gastando más de lo que ingresas por " +
+                                "$${formatAmount(-disponibleMes)}."
+                }
+            ),
+
+            // =====================================================
+            // RECOMENDACIÓN
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cómo estoy manejando mi dinero?",
+                answer = when {
+                    gastosMes == 0.0 ->
+                        "Todavía no hay suficientes gastos registrados " +
+                                "para analizar tu comportamiento."
+
+                    disponibleMes < 0 ->
+                        "Tus gastos superan tus ingresos. " +
+                                "Sería recomendable reducir gastos " +
+                                "o aumentar tus ingresos."
+
+                    porcentajeGastado >= 90 ->
+                        "Has utilizado gran parte de tus ingresos. " +
+                                "Conviene controlar los gastos restantes."
+
+                    porcentajeGastado >= 70 ->
+                        "Vas utilizando una parte importante de tus ingresos. " +
+                                "Todavía tienes margen, pero conviene controlar " +
+                                "los gastos."
+
+                    else ->
+                        "Tu situación parece saludable por ahora. " +
+                                "Tus gastos están por debajo de tus ingresos."
+                }
             )
         )
     }

@@ -114,31 +114,60 @@ class HabitViewModel(
 
         val totalHabits = habits.size
 
-        val dailyHabits =
-            habits.count {
-                it.frequency.equals(
-                    "DIARIO",
-                    ignoreCase = true
-                )
+        val completedToday = habits.count {
+            it.completedToday
+        }
+
+        val pendingToday = habits.count {
+            !it.completedToday
+        }
+
+        val dailyHabits = habits.count {
+            it.frequency.equals(
+                "DIARIO",
+                ignoreCase = true
+            )
+        }
+
+        val weeklyHabits = habits.count {
+            it.frequency.equals(
+                "SEMANAL",
+                ignoreCase = true
+            )
+        }
+
+        val monthlyHabits = habits.count {
+            it.frequency.equals(
+                "MENSUAL",
+                ignoreCase = true
+            )
+        }
+
+        val totalStreak = habits.sumOf {
+            it.streak
+        }
+
+        val bestStreakHabit = habits.maxByOrNull {
+            it.streak
+        }
+
+        val completionPercentage =
+            if (totalHabits > 0) {
+                (completedToday.toDouble() / totalHabits) * 100
+            } else {
+                0.0
             }
 
-        val weeklyHabits =
-            habits.count {
-                it.frequency.equals(
-                    "SEMANAL",
-                    ignoreCase = true
-                )
-            }
-
-        val monthlyHabits =
-            habits.count {
-                it.frequency.equals(
-                    "MENSUAL",
-                    ignoreCase = true
-                )
-            }
+        val pendingHabitWithBestStreak = habits
+            .filter { !it.completedToday }
+            .maxByOrNull { it.streak }
 
         return listOf(
+
+            // =====================================================
+            // RESUMEN
+            // =====================================================
+
             AssistantQuestion(
                 question = "¿Cuántos hábitos tengo?",
                 answer = if (totalHabits == 0) {
@@ -147,6 +176,10 @@ class HabitViewModel(
                     "Actualmente tienes $totalHabits hábitos registrados."
                 }
             ),
+
+            // =====================================================
+            // FRECUENCIA
+            // =====================================================
 
             AssistantQuestion(
                 question = "¿Cuántos hábitos diarios tengo?",
@@ -173,6 +206,166 @@ class HabitViewModel(
                 } else {
                     "Tienes $monthlyHabits hábitos mensuales."
                 }
+            ),
+
+            // =====================================================
+            // PROGRESO DE HOY
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuántos hábitos completé hoy?",
+                answer = if (completedToday == 0) {
+                    "Todavía no completaste ningún hábito hoy."
+                } else {
+                    "Hoy completaste $completedToday de tus " +
+                            "$totalHabits hábitos."
+                }
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántos hábitos me faltan hoy?",
+                answer = if (pendingToday == 0) {
+                    "¡Excelente! Completaste todos tus hábitos de hoy."
+                } else {
+                    "Te faltan $pendingToday hábitos por completar hoy."
+                }
+            ),
+
+            AssistantQuestion(
+                question = "¿Qué porcentaje de mis hábitos completé hoy?",
+                answer = if (totalHabits == 0) {
+                    "No tienes hábitos registrados."
+                } else {
+                    "Hoy completaste aproximadamente " +
+                            "${completionPercentage.toInt()}% de tus hábitos."
+                }
+            ),
+
+            AssistantQuestion(
+                question = "¿Cómo voy con mis hábitos hoy?",
+                answer = when {
+                    totalHabits == 0 ->
+                        "Todavía no tienes hábitos registrados."
+
+                    completionPercentage == 100.0 ->
+                        "¡Excelente! Completaste todos tus hábitos de hoy."
+
+                    completionPercentage >= 75 ->
+                        "Vas muy bien. Ya completaste " +
+                                "${completionPercentage.toInt()}% de tus hábitos."
+
+                    completionPercentage >= 50 ->
+                        "Vas por buen camino. Ya completaste más de la mitad " +
+                                "de tus hábitos."
+
+                    completionPercentage > 0 ->
+                        "Ya empezaste, pero todavía tienes " +
+                                "$pendingToday hábitos pendientes."
+
+                    else ->
+                        "Todavía no completaste ningún hábito hoy."
+                }
+            ),
+
+            // =====================================================
+            // RACHAS
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuál es mi mejor racha?",
+                answer = bestStreakHabit?.let {
+                    if (it.streak > 0) {
+                        "Tu mejor racha es de ${it.streak} días " +
+                                "con el hábito \"${it.name}\"."
+                    } else {
+                        "Todavía no tienes ninguna racha registrada."
+                    }
+                } ?: "Todavía no tienes hábitos registrados."
+            ),
+
+            AssistantQuestion(
+                question = "¿Qué hábito tiene mi mejor racha?",
+                answer = bestStreakHabit?.let {
+                    if (it.streak > 0) {
+                        "\"${it.name}\" tiene tu mejor racha, " +
+                                "con ${it.streak} días."
+                    } else {
+                        "Todavía no tienes hábitos con una racha activa."
+                    }
+                } ?: "Todavía no tienes hábitos registrados."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántos días de racha tengo en total?",
+                answer = if (totalStreak == 0) {
+                    "Todavía no tienes días de racha acumulados."
+                } else {
+                    "Tienes $totalStreak días de racha acumulados " +
+                            "entre todos tus hábitos."
+                }
+            ),
+
+            // =====================================================
+            // HÁBITOS PENDIENTES
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Qué hábito debería completar hoy?",
+                answer = pendingHabitWithBestStreak?.let {
+                    if (it.streak > 0) {
+                        "Tienes pendiente \"${it.name}\". " +
+                                "Lleva una racha de ${it.streak} días, " +
+                                "así que completarlo hoy te ayudará a mantenerla."
+                    } else {
+                        "Tienes pendiente \"${it.name}\". " +
+                                "Puedes aprovechar para empezar una nueva racha."
+                    }
+                } ?: if (totalHabits == 0) {
+                    "Todavía no tienes hábitos registrados."
+                } else {
+                    "¡Excelente! No tienes hábitos pendientes para hoy."
+                }
+            ),
+
+            AssistantQuestion(
+                question = "¿Estoy siendo constante con mis hábitos?",
+                answer = when {
+                    totalHabits == 0 ->
+                        "Todavía no tienes hábitos para analizar."
+
+                    completionPercentage == 100.0 ->
+                        "Sí. Hoy completaste todos tus hábitos."
+
+                    completionPercentage >= 75 ->
+                        "Sí. Vas bastante bien y estás completando " +
+                                "la mayoría de tus hábitos."
+
+                    completionPercentage >= 50 ->
+                        "Vas bien, pero todavía puedes mejorar tu constancia."
+
+                    completionPercentage > 0 ->
+                        "Ya empezaste, pero tienes varios hábitos pendientes."
+
+                    else ->
+                        "Hoy todavía no completaste ningún hábito."
+                }
+            ),
+
+            // =====================================================
+            // HÁBITO CON MAYOR RENDIMIENTO
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuál es mi hábito más constante?",
+                answer = bestStreakHabit?.let {
+                    if (it.streak > 0) {
+                        "\"${it.name}\" es tu hábito con mayor racha, " +
+                                "con ${it.streak} días consecutivos."
+                    } else {
+                        "Todavía no tienes suficiente información " +
+                                "para determinarlo."
+                    }
+                } ?: "Todavía no tienes hábitos registrados."
             )
         )
     }

@@ -63,16 +63,333 @@ class GoalViewModel(
 
         val totalGoals = goals.size
 
+        if (goals.isEmpty()) {
+            return listOf(
+                AssistantQuestion(
+                    question = "¿Cuántas metas tengo?",
+                    answer = "Actualmente no tienes metas registradas."
+                ),
+                AssistantQuestion(
+                    question = "¿Tengo metas activas?",
+                    answer = "Todavía no tienes metas para alcanzar."
+                ),
+                AssistantQuestion(
+                    question = "¿Cuánto dinero tengo ahorrado en mis metas?",
+                    answer = "Todavía no tienes dinero acumulado en metas."
+                ),
+                AssistantQuestion(
+                    question = "¿Cuánto me falta para alcanzar mis metas?",
+                    answer = "No tienes metas pendientes actualmente."
+                )
+            )
+        }
+
+        // =========================================================
+        // PROGRESO INDIVIDUAL
+        // =========================================================
+
+        fun progress(goal: Goal): Double {
+            if (goal.targetAmount <= 0.0) return 0.0
+
+            return (
+                    goal.currentAmount / goal.targetAmount
+                    ) * 100.0
+        }
+
+        val completedGoals = goals.count {
+            it.currentAmount >= it.targetAmount &&
+                    it.targetAmount > 0
+        }
+
+        val pendingGoals = goals.count {
+            it.currentAmount < it.targetAmount
+        }
+
+        val totalTarget = goals.sumOf {
+            it.targetAmount
+        }
+
+        val totalSaved = goals.sumOf {
+            it.currentAmount
+        }
+
+        val totalRemaining = goals.sumOf {
+            (it.targetAmount - it.currentAmount)
+                .coerceAtLeast(0.0)
+        }
+
+        val overallProgress =
+            if (totalTarget > 0) {
+                (totalSaved / totalTarget) * 100.0
+            } else {
+                0.0
+            }
+
+        // =========================================================
+        // META MÁS AVANZADA
+        // =========================================================
+
+        val mostAdvancedGoal = goals
+            .filter { it.targetAmount > 0 }
+            .maxByOrNull {
+                progress(it)
+            }
+
+        // =========================================================
+        // META MÁS CERCANA
+        // =========================================================
+
+        val closestGoal = goals
+            .filter {
+                it.currentAmount < it.targetAmount &&
+                        it.targetAmount > 0
+            }
+            .minByOrNull {
+                it.targetAmount - it.currentAmount
+            }
+
+        // =========================================================
+        // META MÁS LEJANA
+        // =========================================================
+
+        val furthestGoal = goals
+            .filter {
+                it.targetAmount > 0
+            }
+            .minByOrNull {
+                progress(it)
+            }
+
+        // =========================================================
+        // META CON MAYOR OBJETIVO
+        // =========================================================
+
+        val biggestGoal = goals
+            .maxByOrNull {
+                it.targetAmount
+            }
+
+        // =========================================================
+        // META CON MÁS DINERO ACUMULADO
+        // =========================================================
+
+        val mostSavedGoal = goals
+            .maxByOrNull {
+                it.currentAmount
+            }
+
+        // =========================================================
+        // META PRIORITARIA
+        // =========================================================
+
+        val priorityGoal = goals
+            .filter {
+                it.currentAmount < it.targetAmount
+            }
+            .maxByOrNull {
+                it.priority
+            }
+
         return listOf(
+
+            // =====================================================
+            // RESUMEN
+            // =====================================================
+
             AssistantQuestion(
                 question = "¿Cuántas metas tengo?",
-                answer = if (totalGoals == 0) {
-                    "Actualmente no tienes metas registradas."
-                } else {
+                answer =
                     "Actualmente tienes $totalGoals metas registradas."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántas metas completé?",
+                answer = if (completedGoals == 0) {
+                    "Todavía no completaste ninguna meta."
+                } else {
+                    "Has completado $completedGoals de tus $totalGoals metas."
+                }
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuántas metas tengo pendientes?",
+                answer = if (pendingGoals == 0) {
+                    "¡Excelente! No tienes metas pendientes."
+                } else {
+                    "Tienes $pendingGoals metas pendientes por alcanzar."
+                }
+            ),
+
+            // =====================================================
+            // DINERO
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuánto dinero tengo ahorrado en mis metas?",
+                answer =
+                    "Actualmente tienes acumulados " +
+                            "$${formatAmount(totalSaved)} " +
+                            "en tus metas."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuánto me falta para alcanzar mis metas?",
+                answer = if (totalRemaining > 0) {
+                    "En total te faltan " +
+                            "$${formatAmount(totalRemaining)} " +
+                            "para alcanzar tus metas pendientes."
+                } else {
+                    "Ya alcanzaste el objetivo de todas tus metas."
+                }
+            ),
+
+            AssistantQuestion(
+                question = "¿Cuánto dinero necesito para completar todas mis metas?",
+                answer =
+                    "Necesitas todavía " +
+                            "$${formatAmount(totalRemaining)} " +
+                            "para completar todas tus metas pendientes."
+            ),
+
+            // =====================================================
+            // PROGRESO
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Qué porcentaje de mis metas completé?",
+                answer =
+                    "Considerando el dinero acumulado frente al objetivo total, " +
+                            "has completado aproximadamente " +
+                            "${overallProgress.coerceAtMost(100.0).toInt()}%."
+            ),
+
+            AssistantQuestion(
+                question = "¿Cómo voy con mis metas?",
+                answer = when {
+                    overallProgress >= 100 ->
+                        "¡Excelente! Has alcanzado el objetivo total de tus metas."
+
+                    overallProgress >= 75 ->
+                        "Vas muy bien. Has alcanzado aproximadamente " +
+                                "${overallProgress.toInt()}% de tus objetivos."
+
+                    overallProgress >= 50 ->
+                        "Vas por buen camino. Ya alcanzaste aproximadamente " +
+                                "${overallProgress.toInt()}%."
+
+                    overallProgress > 0 ->
+                        "Ya empezaste a avanzar. Actualmente llevas " +
+                                "${overallProgress.toInt()}% de progreso."
+
+                    else ->
+                        "Todavía no tienes dinero acumulado en tus metas."
+                }
+            ),
+
+            // =====================================================
+            // META MÁS AVANZADA
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuál es mi meta más avanzada?",
+                answer = mostAdvancedGoal?.let {
+                    "\"${it.title}\" es tu meta más avanzada, " +
+                            "con aproximadamente ${progress(it).toInt()}% completado."
+                } ?: "No tienes metas con progreso registrado."
+            ),
+
+            // =====================================================
+            // META MÁS CERCANA
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Qué meta estoy más cerca de completar?",
+                answer = closestGoal?.let {
+                    val remaining =
+                        (it.targetAmount - it.currentAmount)
+                            .coerceAtLeast(0.0)
+
+                    "\"${it.title}\" es la meta que tienes más cerca " +
+                            "de completar. Te faltan " +
+                            "$${formatAmount(remaining)}."
+                } ?: "Ya alcanzaste todas tus metas."
+            ),
+
+            // =====================================================
+            // META MÁS LEJANA
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuál es mi meta más atrasada?",
+                answer = furthestGoal?.let {
+                    "\"${it.title}\" es actualmente tu meta con menor progreso, " +
+                            "con aproximadamente ${progress(it).toInt()}%."
+                } ?: "No tienes metas pendientes."
+            ),
+
+            // =====================================================
+            // MAYOR OBJETIVO
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuál es mi meta más grande?",
+                answer = biggestGoal?.let {
+                    "\"${it.title}\" es tu meta con el objetivo más grande, " +
+                            "de $${formatAmount(it.targetAmount)}."
+                } ?: "No tienes metas registradas."
+            ),
+
+            // =====================================================
+            // MAYOR AHORRO
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿En qué meta tengo más dinero?",
+                answer = mostSavedGoal?.let {
+                    "\"${it.title}\" es la meta en la que más dinero tienes " +
+                            "acumulado: $${formatAmount(it.currentAmount)}."
+                } ?: "Todavía no tienes dinero acumulado."
+            ),
+
+            // =====================================================
+            // PRIORIDAD
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿Cuál es mi meta prioritaria?",
+                answer = priorityGoal?.let {
+                    "\"${it.title}\" es actualmente tu meta prioritaria. " +
+                            "Llevas ${progress(it).toInt()}% de progreso."
+                } ?: "No tienes metas pendientes."
+            ),
+
+            // =====================================================
+            // CONSEJO
+            // =====================================================
+
+            AssistantQuestion(
+                question = "¿En qué meta debería concentrarme?",
+                answer = when {
+                    closestGoal != null -> {
+                        val remaining =
+                            (closestGoal.targetAmount -
+                                    closestGoal.currentAmount)
+                                .coerceAtLeast(0.0)
+
+                        "Podrías concentrarte en \"${closestGoal.title}\", " +
+                                "porque es la meta más cercana a completarse. " +
+                                "Te faltan $${formatAmount(remaining)}."
+                    }
+
+                    else ->
+                        "Ya alcanzaste todas tus metas pendientes."
                 }
             )
         )
+    }
+
+    private fun formatAmount(amount: Double): String {
+        return amount.toString()
     }
 
     fun refreshGoals() = viewModelScope.launch {

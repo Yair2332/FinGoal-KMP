@@ -4,15 +4,16 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,6 +32,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,9 +43,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import fingoal.sharedlogic.generated.resources.Res
@@ -51,13 +56,6 @@ import fingoal.sharedlogic.generated.resources.gooli
 import fingoal.sharedlogic.generated.resources.grenny
 import fingoal.sharedlogic.generated.resources.rosy
 import fingoal.sharedlogic.generated.resources.sun
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.unit.IntOffset
-import kotlin.math.roundToInt
 
 
 /*
@@ -87,9 +85,6 @@ private data class AssistantCharacterConfig(
 /*
  * ============================================================
  * COLORES DE LOS PERSONAJES
- *
- * Estos colores son propios de cada personaje y no cambian
- * con el tema claro/oscuro.
  * ============================================================
  */
 
@@ -116,8 +111,6 @@ fun AssistantFinGoal(
     /*
      * ========================================================
      * ESTADO DEL BOTTOM SHEET
-     *
-     * Se utiliza para abrir directamente expandido.
      * ========================================================
      */
 
@@ -126,6 +119,7 @@ fun AssistantFinGoal(
     var showAssistant by remember {
         mutableStateOf(false)
     }
+
 
     /*
      * ========================================================
@@ -136,6 +130,7 @@ fun AssistantFinGoal(
     val conversation = remember {
         mutableStateListOf<AssistantMessage>()
     }
+
 
     /*
      * ========================================================
@@ -162,6 +157,7 @@ fun AssistantFinGoal(
                 Res.drawable.rosy
         }
 
+
     /*
      * ========================================================
      * CONFIGURACIÓN DEL PERSONAJE
@@ -170,6 +166,13 @@ fun AssistantFinGoal(
 
     val characterConfig =
         getCharacterConfig(character)
+
+
+    /*
+     * ========================================================
+     * POSICIÓN DEL BOTÓN FLOTANTE
+     * ========================================================
+     */
 
     var offsetX by remember {
         mutableFloatStateOf(0f)
@@ -194,29 +197,42 @@ fun AssistantFinGoal(
         modifier = modifier.fillMaxSize()
     ) {
 
-        val density = androidx.compose.ui.platform.LocalDensity.current
+        val density =
+            androidx.compose.ui.platform.LocalDensity.current
 
-        val buttonSize = with(density) {
-            64.dp.toPx()
-        }
+        val buttonSize =
+            with(density) {
+                64.dp.toPx()
+            }
 
-        val edgePadding = with(density) {
-            20.dp.toPx()
-        }
+        val edgePadding =
+            with(density) {
+                20.dp.toPx()
+            }
 
-        val bottomPadding = with(density) {
-            90.dp.toPx()
-        }
+        val bottomPadding =
+            with(density) {
+                90.dp.toPx()
+            }
 
-        val screenWidth = constraints.maxWidth.toFloat()
-        val screenHeight = constraints.maxHeight.toFloat()
+        val screenWidth =
+            constraints.maxWidth.toFloat()
 
-        // Posición inicial: abajo a la derecha
+        val screenHeight =
+            constraints.maxHeight.toFloat()
+
+
+        /*
+         * Posición inicial:
+         * abajo a la derecha.
+         */
+
         if (
             !initialized &&
             screenWidth > 0f &&
             screenHeight > 0f
         ) {
+
             offsetX =
                 screenWidth -
                         buttonSize -
@@ -229,6 +245,7 @@ fun AssistantFinGoal(
 
             initialized = true
         }
+
 
         Box(
             modifier = Modifier
@@ -244,11 +261,17 @@ fun AssistantFinGoal(
                     shape = CircleShape
                 )
                 .clip(CircleShape)
-                .background(characterConfig.color)
+                .background(
+                    characterConfig.color
+                )
                 .pointerInput(Unit) {
+
                     detectDragGestures(
 
-                        // Movimiento libre
+                        /*
+                         * Movimiento libre.
+                         */
+
                         onDrag = { change, dragAmount ->
 
                             change.consume()
@@ -256,32 +279,53 @@ fun AssistantFinGoal(
                             offsetX += dragAmount.x
                             offsetY += dragAmount.y
 
-                            // No puede salir de la pantalla
-                            offsetX = offsetX.coerceIn(
-                                0f,
-                                screenWidth - buttonSize
-                            )
 
-                            offsetY = offsetY.coerceIn(
-                                0f,
-                                screenHeight - buttonSize
-                            )
+                            /*
+                             * No puede salir
+                             * de la pantalla.
+                             */
+
+                            offsetX =
+                                offsetX.coerceIn(
+                                    0f,
+                                    screenWidth - buttonSize
+                                )
+
+                            offsetY =
+                                offsetY.coerceIn(
+                                    0f,
+                                    screenHeight - buttonSize
+                                )
                         },
 
-                        // Cuando soltás el botón
+
+                        /*
+                         * Cuando soltás el botón.
+                         */
+
                         onDragEnd = {
 
-                            val distanceToLeft = offsetX
+                            val distanceToLeft =
+                                offsetX
 
                             val distanceToRight =
                                 screenWidth -
                                         buttonSize -
                                         offsetX
 
-                            // Se pega solamente al lado más cercano
-                            if (distanceToLeft < distanceToRight) {
 
-                                offsetX = edgePadding
+                            /*
+                             * Se pega solamente
+                             * al lado más cercano.
+                             */
+
+                            if (
+                                distanceToLeft <
+                                distanceToRight
+                            ) {
+
+                                offsetX =
+                                    edgePadding
 
                             } else {
 
@@ -296,17 +340,28 @@ fun AssistantFinGoal(
                 .clickable {
                     showAssistant = true
                 },
-            contentAlignment = Alignment.Center
+
+            contentAlignment =
+                Alignment.Center
         ) {
 
             Image(
-                painter = painterResource(characterResource),
+
+                painter =
+                    painterResource(
+                        characterResource
+                    ),
+
                 contentDescription =
                     "Abrir asistente ${characterConfig.name}",
-                modifier = Modifier
-                    .size(58.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+
+                modifier =
+                    Modifier
+                        .size(58.dp)
+                        .clip(CircleShape),
+
+                contentScale =
+                    ContentScale.Crop
             )
         }
     }
@@ -320,16 +375,20 @@ fun AssistantFinGoal(
 
     if (showAssistant) {
 
-
         LaunchedEffect(Unit) {
             sheetState.expand()
         }
 
+
         ModalBottomSheet(
-            sheetState = sheetState,
+
+            sheetState =
+                sheetState,
 
             onDismissRequest = {
+
                 showAssistant = false
+
                 conversation.clear()
             },
 
@@ -339,7 +398,8 @@ fun AssistantFinGoal(
             contentColor =
                 MaterialTheme.colorScheme.onSurface,
 
-            tonalElevation = 0.dp
+            tonalElevation =
+                0.dp
 
         ) {
 
@@ -358,7 +418,9 @@ fun AssistantFinGoal(
                     conversation,
 
                 onClose = {
+
                     showAssistant = false
+
                     conversation.clear()
                 }
             )
@@ -437,8 +499,36 @@ private fun AssistantContent(
     onClose: () -> Unit
 ) {
 
+    /*
+     * ========================================================
+     * SCROLL DEL CHAT
+     *
+     * Este es el scroll que realmente utiliza
+     * el Column del chat.
+     * ========================================================
+     */
+
     val scrollState =
         rememberScrollState()
+
+
+    /*
+     * ========================================================
+     * CUANDO SE AGREGA UNA PREGUNTA
+     *
+     * Volvemos automáticamente al principio
+     * para mostrar la conversación.
+     * ========================================================
+     */
+
+    LaunchedEffect(conversation.size) {
+
+        if (conversation.isNotEmpty()) {
+
+            scrollState.animateScrollTo(0)
+        }
+    }
+
 
     Box(
         modifier = Modifier
@@ -450,8 +540,6 @@ private fun AssistantContent(
         /*
          * ====================================================
          * PERSONAJE GRANDE
-         *
-         * Queda detrás del contenedor.
          * ====================================================
          */
 
@@ -465,6 +553,7 @@ private fun AssistantContent(
         ) {
 
             Image(
+
                 painter =
                     painterResource(character),
 
@@ -488,14 +577,15 @@ private fun AssistantContent(
 
         Surface(
 
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    top = 62.dp,
-                    start = 12.dp,
-                    end = 12.dp,
-                    bottom = 10.dp
-                ),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        top = 62.dp,
+                        start = 12.dp,
+                        end = 12.dp,
+                        bottom = 10.dp
+                    ),
 
             shape =
                 RoundedCornerShape(28.dp),
@@ -506,19 +596,21 @@ private fun AssistantContent(
             contentColor =
                 MaterialTheme.colorScheme.onSurface,
 
-            shadowElevation = 8.dp
+            shadowElevation =
+                8.dp
 
         ) {
 
             Column(
 
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 14.dp
-                    )
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 14.dp
+                        )
             ) {
 
 
@@ -536,11 +628,6 @@ private fun AssistantContent(
                     verticalAlignment =
                         Alignment.CenterVertically
                 ) {
-
-
-                    /*
-                     * Nombre del personaje.
-                     */
 
                     Surface(
 
@@ -581,17 +668,15 @@ private fun AssistantContent(
                     )
 
 
-                    /*
-                     * Subtítulo.
-                     */
-
                     Text(
 
                         text =
                             "Asistente financiero",
 
                         color =
-                            MaterialTheme.colorScheme.onSurfaceVariant,
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant,
 
                         modifier =
                             Modifier.weight(1f)
@@ -604,11 +689,12 @@ private fun AssistantContent(
 
                     Surface(
 
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .clickable {
-                                onClose()
-                            },
+                        modifier =
+                            Modifier
+                                .clip(CircleShape)
+                                .clickable {
+                                    onClose()
+                                },
 
                         shape =
                             CircleShape,
@@ -617,16 +703,21 @@ private fun AssistantContent(
                             Color.Transparent,
 
                         contentColor =
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
 
                     ) {
 
                         Text(
 
-                            text = "✕",
+                            text =
+                                "✕",
 
                             color =
-                                MaterialTheme.colorScheme.onSurfaceVariant,
+                                MaterialTheme
+                                    .colorScheme
+                                    .onSurfaceVariant,
 
                             modifier =
                                 Modifier.padding(8.dp)
@@ -661,12 +752,13 @@ private fun AssistantContent(
                 } else {
 
                     /*
-                     * Solo mostramos las últimas dos
-                     * interacciones.
+                     * Solo mostramos las últimas
+                     * dos interacciones.
                      */
 
                     val visibleMessages =
                         conversation.takeLast(2)
+
 
                     visibleMessages.forEach { message ->
 
@@ -683,10 +775,12 @@ private fun AssistantContent(
                                 characterConfig.color
                         )
 
+
                         Spacer(
                             modifier =
                                 Modifier.height(6.dp)
                         )
+
 
                         /*
                          * Respuesta del asistente.
@@ -703,6 +797,7 @@ private fun AssistantContent(
                             text =
                                 message.answer
                         )
+
 
                         Spacer(
                             modifier =
@@ -723,14 +818,18 @@ private fun AssistantContent(
                         Modifier.height(14.dp)
                 )
 
+
                 HorizontalDivider(
 
                     color =
-                        MaterialTheme.colorScheme.outlineVariant,
+                        MaterialTheme
+                            .colorScheme
+                            .outlineVariant,
 
                     thickness =
                         1.dp
                 )
+
 
                 Spacer(
                     modifier =
@@ -750,11 +849,14 @@ private fun AssistantContent(
                         "Preguntas",
 
                     color =
-                        MaterialTheme.colorScheme.onSurface,
+                        MaterialTheme
+                            .colorScheme
+                            .onSurface,
 
                     fontWeight =
                         FontWeight.Bold
                 )
+
 
                 Spacer(
                     modifier =
@@ -826,7 +928,9 @@ private fun AssistantContent(
                             "Ya respondiste todas las preguntas.",
 
                         color =
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            MaterialTheme
+                                .colorScheme
+                                .onSurfaceVariant
                     )
                 }
 
@@ -874,9 +978,10 @@ private fun AssistantWelcome(
             contentDescription =
                 characterConfig.name,
 
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape),
+            modifier =
+                Modifier
+                    .size(36.dp)
+                    .clip(CircleShape),
 
             contentScale =
                 ContentScale.Crop
@@ -901,10 +1006,14 @@ private fun AssistantWelcome(
                 ),
 
             color =
-                MaterialTheme.colorScheme.secondaryContainer,
+                MaterialTheme
+                    .colorScheme
+                    .secondaryContainer,
 
             contentColor =
-                MaterialTheme.colorScheme.onSecondaryContainer
+                MaterialTheme
+                    .colorScheme
+                    .onSecondaryContainer
 
         ) {
 
@@ -914,7 +1023,9 @@ private fun AssistantWelcome(
                     "¡Hola! 👋 Elegí una pregunta y te ayudo con tus finanzas.",
 
                 color =
-                    MaterialTheme.colorScheme.onSecondaryContainer,
+                    MaterialTheme
+                        .colorScheme
+                        .onSecondaryContainer,
 
                 modifier =
                     Modifier.padding(
@@ -953,11 +1064,6 @@ private fun UserMessage(
             Arrangement.End
     ) {
 
-        /*
-         * El usuario utiliza el color del personaje
-         * como identidad de la conversación.
-         */
-
         Surface(
 
             shape =
@@ -981,10 +1087,6 @@ private fun UserMessage(
 
                 text =
                     text,
-
-                /*
-                 * Texto blanco sobre el verde.
-                 */
 
                 color =
                     Color.White,
@@ -1040,9 +1142,10 @@ private fun AssistantMessageBubble(
             contentDescription =
                 characterConfig.name,
 
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape),
+            modifier =
+                Modifier
+                    .size(36.dp)
+                    .clip(CircleShape),
 
             contentScale =
                 ContentScale.Crop
@@ -1054,14 +1157,6 @@ private fun AssistantMessageBubble(
                 Modifier.width(8.dp)
         )
 
-
-        /*
-         * Burbuja del chatbot.
-         *
-         * Usamos los colores nativos de Material 3
-         * para que se adapte automáticamente a
-         * Light/Dark Theme.
-         */
 
         Surface(
 
@@ -1075,10 +1170,14 @@ private fun AssistantMessageBubble(
                 ),
 
             color =
-                MaterialTheme.colorScheme.secondaryContainer,
+                MaterialTheme
+                    .colorScheme
+                    .secondaryContainer,
 
             contentColor =
-                MaterialTheme.colorScheme.onSecondaryContainer
+                MaterialTheme
+                    .colorScheme
+                    .onSecondaryContainer
 
         ) {
 
@@ -1088,7 +1187,9 @@ private fun AssistantMessageBubble(
                     text,
 
                 color =
-                    MaterialTheme.colorScheme.onSecondaryContainer,
+                    MaterialTheme
+                        .colorScheme
+                        .onSecondaryContainer,
 
                 modifier =
                     Modifier.padding(
@@ -1122,28 +1223,28 @@ private fun QuestionButton(
 
     Surface(
 
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(16.dp)
-            )
-            .clickable {
-                onClick()
-            },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(
+                    RoundedCornerShape(16.dp)
+                )
+                .clickable {
+                    onClick()
+                },
 
         shape =
             RoundedCornerShape(16.dp),
 
-        /*
-         * Material 3 se encarga de adaptar este
-         * container al tema claro/oscuro.
-         */
-
         color =
-            MaterialTheme.colorScheme.surfaceContainerLow,
+            MaterialTheme
+                .colorScheme
+                .surfaceContainerLow,
 
         contentColor =
-            MaterialTheme.colorScheme.onSurface,
+            MaterialTheme
+                .colorScheme
+                .onSurface,
 
         border =
             BorderStroke(
@@ -1151,7 +1252,9 @@ private fun QuestionButton(
                 width = 1.dp,
 
                 color =
-                    MaterialTheme.colorScheme.outlineVariant
+                    MaterialTheme
+                        .colorScheme
+                        .outlineVariant
             ),
 
         shadowElevation =
@@ -1173,19 +1276,19 @@ private fun QuestionButton(
                 Alignment.CenterVertically
         ) {
 
-
             /*
              * Indicador del personaje.
              */
 
             Box(
 
-                modifier = Modifier
-                    .size(10.dp)
-                    .clip(CircleShape)
-                    .background(
-                        characterColor
-                    )
+                modifier =
+                    Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(
+                            characterColor
+                        )
             )
 
 
@@ -1201,7 +1304,9 @@ private fun QuestionButton(
                     question,
 
                 color =
-                    MaterialTheme.colorScheme.onSurface,
+                    MaterialTheme
+                        .colorScheme
+                        .onSurface,
 
                 fontWeight =
                     FontWeight.Medium,
