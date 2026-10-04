@@ -18,6 +18,10 @@ kotlin {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
+        androidResources {
+            enable = true
+        }
+
         compilerOptions {
             jvmTarget = JvmTarget.JVM_11
         }
@@ -54,13 +58,12 @@ kotlin {
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
 
-            // Koin
             implementation(libs.koin.core)
-            implementation("io.insert-koin:koin-compose:1.1.5")
-
+            implementation(libs.koin.compose)
             // Ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.logging)
             implementation(libs.ktor.serialization.kotlinx.json)
 
             // Lifecycle
