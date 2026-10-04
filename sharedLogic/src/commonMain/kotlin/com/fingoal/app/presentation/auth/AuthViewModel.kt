@@ -42,14 +42,20 @@ class AuthViewModel(
                     userPreferences.saveUserId(id)
                     _uiState.value = AuthUiState.Success(id)
                 }
-                .onFailure {
-                    _uiState.value = AuthUiState.Error("Credenciales inválidas")
+                .onFailure { error ->
+                    val message = when {
+                        error.message?.contains("timeout", ignoreCase = true) == true ->
+                            "La conexión tardó demasiado. Intentá de nuevo."
+                        else -> "No se pudo iniciar sesión. Revisá tus datos y conexión."
+                    }
+                    _uiState.value = AuthUiState.Error(message)
                 }
         }
     }
 
     fun register(email: String, pass: String, confirm: String) {
         val validationError = AuthValidator.validateRegister(email, pass, confirm)
+
         if (validationError != null) {
             _uiState.value = AuthUiState.Error(validationError)
             return
@@ -62,13 +68,10 @@ class AuthViewModel(
                     userPreferences.saveUserId(id)
                     _uiState.value = AuthUiState.Success(id)
                 }
-                .onFailure { error ->
-                    val message = if (error.message?.contains("400") == true) {
-                        "El usuario ya existe"
-                    } else {
-                        "Ocurrió un error inesperado"
-                    }
-                    _uiState.value = AuthUiState.Error(message)
+                .onFailure {
+                    _uiState.value = AuthUiState.Error(
+                        "No se pudo completar el registro. Revisá tu conexión e intentá de nuevo."
+                    )
                 }
         }
     }

@@ -42,6 +42,7 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -52,6 +53,7 @@ fun LoginScreen(
             }
 
             is AuthUiState.Error -> {
+                errorMessage = state.message
                 viewModel.resetState()
             }
 
@@ -113,6 +115,14 @@ fun LoginScreen(
             viewModel.login(
                 email = email,
                 pass = password
+            )
+        }
+
+        errorMessage?.let { message ->
+            Spacer(Modifier.height(12.dp))
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error
             )
         }
 

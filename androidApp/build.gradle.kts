@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinAndroid)
-    id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.kotlinSerialization)
 }
 
 dependencies {
@@ -20,17 +20,17 @@ dependencies {
     debugImplementation(libs.compose.uiTooling)
 
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
+
     implementation("io.insert-koin:koin-androidx-compose:3.5.3")
-    implementation("io.coil-kt:coil-compose:2.6.0")
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
     implementation(libs.androidx.navigation.compose)
 }
 
 android {
-
     namespace = "com.fingoal.app"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
@@ -51,7 +51,6 @@ android {
     }
 
     buildTypes {
-
         release {
             isMinifyEnabled = false
 
