@@ -22,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.fingoal.app.presentation.transactions.TransactionViewModel
 import com.fingoal.app.ui.components.AssistantFinGoal
 import com.fingoal.app.ui.components.ConfirmationDialog
 import com.fingoal.app.ui.components.EmptyStateComponent
@@ -46,7 +45,6 @@ fun TransactionScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .background(
                 MaterialTheme.colorScheme.background
             )
@@ -59,7 +57,9 @@ fun TransactionScreen(
          */
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
 
             contentPadding = PaddingValues(
                 bottom = 80.dp

@@ -1,4 +1,4 @@
-package com.fingoal.app.presentation.auth
+package com.fingoal.app.ui.screens.auth
 
 object AuthValidator {
 

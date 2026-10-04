@@ -19,7 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.fingoal.app.presentation.dashboard.DashboardViewModel
+import com.fingoal.app.ui.components.AssistantFinGoal
 import com.fingoal.app.ui.screens.dashboard.components.BalanceCard
 import com.fingoal.app.ui.screens.dashboard.components.BalanceChart
 import com.fingoal.app.ui.screens.dashboard.components.GoalCard
@@ -37,105 +37,115 @@ fun DashboardScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        item {
-            BalanceCard(
-                totalBalance = state.totalBalance,
-                isDarkMode = isDarkMode,
-                onToggleDarkMode = onToggleDarkMode,
-                onNavigateToTransactions = onNavigateToTransactions
-            )
-        }
-
-        item {
-            SummaryCardsRow(
-                totalExpenses = state.totalExpenses,
-                savingsTotal = state.savingsTotal
-            )
-        }
-
-        if (state.chartData.isNotEmpty()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             item {
-                Text(
-                    text = "Flujo de dinero",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp)
+                BalanceCard(
+                    totalBalance = state.totalBalance,
+                    isDarkMode = isDarkMode,
+                    onToggleDarkMode = onToggleDarkMode,
+                    onNavigateToTransactions = onNavigateToTransactions
                 )
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.outlineVariant
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 2.dp
-                    )
-                ) {
-                    BalanceChart(
-                        chartData = state.chartData,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
             }
-        }
 
-        state.recentHabits?.let { habits ->
-            if (habits.isNotEmpty()) {
+            item {
+                SummaryCardsRow(
+                    totalExpenses = state.totalExpenses,
+                    savingsTotal = state.savingsTotal
+                )
+            }
+
+            if (state.chartData.isNotEmpty()) {
                 item {
                     Text(
-                        text = "Hábitos de hoy",
+                        text = "Flujo de dinero",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
-                }
 
-                items(habits) { habit ->
-                    HabitItem(
-                        habit = habit,
-                        onToggle = {},
-                        onDelete = {},
-                        onEdit = {},
-                        navigateToHabits = onNavigateToHabits,
-                        isExpandable = false
-                    )
-                }
-            }
-        }
-
-        state.topGoal?.let { goal ->
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Próximo objetivo",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.outlineVariant
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 2.dp
+                        )
+                    ) {
+                        BalanceChart(
+                            chartData = state.chartData,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
 
+            state.recentHabits?.let { habits ->
+                if (habits.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Hábitos de hoy",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    items(habits) { habit ->
+                        HabitItem(
+                            habit = habit,
+                            onToggle = {},
+                            onDelete = {},
+                            onEdit = {},
+                            navigateToHabits = onNavigateToHabits,
+                            isExpandable = false
+                        )
+                    }
+                }
+            }
+
+            state.topGoal?.let { goal ->
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Próximo objetivo",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                item {
+                    GoalCard(
+                        goal = goal,
+                        onClick = onNavigateToGoals
+                    )
+                }
+            }
+
             item {
-                GoalCard(
-                    goal = goal,
-                    onClick = onNavigateToGoals
+                Spacer(
+                    modifier = Modifier.height(16.dp)
                 )
             }
         }
 
-        item {
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-        }
+        AssistantFinGoal(
+            character = "grenny",
+            questions = state.assistantQuestions,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

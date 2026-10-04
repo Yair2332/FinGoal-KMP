@@ -28,8 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.fingoal.app.domain.model.Goal
-import com.fingoal.app.presentation.goals.GoalViewModel
 import com.fingoal.app.ui.components.AnimatedMotivationalCard
+import com.fingoal.app.ui.components.AssistantFinGoal
 import com.fingoal.app.ui.components.ConfirmationDialog
 import com.fingoal.app.ui.components.EmptyStateComponent
 import com.fingoal.app.ui.screens.goals.components.GoalFormContent
@@ -82,6 +82,7 @@ fun GoalScreen(
                 )
             }
 
+
             if (uiState.isLoading) {
                 item {
                     Box(
@@ -132,6 +133,12 @@ fun GoalScreen(
                 }
             }
         }
+
+        AssistantFinGoal(
+            character = "gooli",
+            questions = uiState.assistantQuestions,
+            modifier = Modifier.fillMaxSize()
+        )
 
         if (showBottomSheet) {
             ModalBottomSheet(

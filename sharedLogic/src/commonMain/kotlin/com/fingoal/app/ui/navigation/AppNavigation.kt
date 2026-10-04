@@ -51,12 +51,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.fingoal.app.data.local.UserPreferences
-import com.fingoal.app.presentation.auth.AuthViewModel
-import com.fingoal.app.presentation.dashboard.DashboardViewModel
-import com.fingoal.app.presentation.goals.GoalViewModel
-import com.fingoal.app.presentation.habits.HabitViewModel
+import com.fingoal.app.ui.screens.auth.AuthViewModel
+import com.fingoal.app.ui.screens.dashboard.DashboardViewModel
+import com.fingoal.app.ui.screens.goals.GoalViewModel
+import com.fingoal.app.ui.screens.habits.HabitViewModel
 import com.fingoal.app.presentation.theme.FinGoalTheme
-import com.fingoal.app.presentation.transactions.TransactionViewModel
+import com.fingoal.app.ui.screens.transactions.TransactionViewModel
 import com.fingoal.app.ui.components.InfoModal
 import com.fingoal.app.ui.components.getHelpInfoForRoute
 import com.fingoal.app.ui.screens.auth.LoginScreen

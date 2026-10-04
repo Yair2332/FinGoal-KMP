@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fingoal.app.presentation.habits.HabitViewModel
+import com.fingoal.app.ui.components.AssistantFinGoal
 import com.fingoal.app.ui.components.ConfirmationDialog
 import com.fingoal.app.ui.components.EmptyStateComponent
 import com.fingoal.app.ui.screens.habits.components.AddHabitDialog
@@ -55,6 +55,7 @@ fun HabitScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,6 +68,7 @@ fun HabitScreen(
                 bottom = 80.dp
             )
         ) {
+
             item {
                 HabitHeader(
                     phrases = phrases
@@ -74,6 +76,7 @@ fun HabitScreen(
             }
 
             if (uiState.isLoading) {
+
                 item {
                     Box(
                         modifier = Modifier
@@ -84,7 +87,9 @@ fun HabitScreen(
                         CircularProgressIndicator()
                     }
                 }
+
             } else if (uiState.habits.isEmpty()) {
+
                 item {
                     Column(
                         modifier = Modifier
@@ -97,11 +102,15 @@ fun HabitScreen(
                         )
                     }
                 }
+
             } else {
+
                 order.forEach { frequency ->
+
                     val habits = groupedHabits[frequency]
 
                     if (!habits.isNullOrEmpty()) {
+
                         item {
                             Text(
                                 text = frequency
@@ -129,18 +138,22 @@ fun HabitScreen(
                             items = habits,
                             key = { it.remoteId }
                         ) { habit ->
+
                             HabitItem(
                                 habit = habit,
+
                                 onToggle = {
                                     viewModel.toggleHabit(
                                         habit.remoteId
                                     )
                                 },
+
                                 onDelete = {
                                     viewModel.showDeleteDialog(
                                         habit
                                     )
                                 },
+
                                 onEdit = {
                                     viewModel.showEditDialog(
                                         habit
@@ -153,31 +166,73 @@ fun HabitScreen(
             }
         }
 
+        /*
+         * ====================================================
+         * ASISTENTE FIN GOAL
+         * ====================================================
+         *
+         * Sun es el personaje correspondiente a Hábitos.
+         */
+
+        AssistantFinGoal(
+            character = "sun",
+            questions = uiState.assistantQuestions,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        /*
+         * ====================================================
+         * DIÁLOGO ELIMINAR
+         * ====================================================
+         */
+
         if (uiState.habitToDelete != null) {
+
             ConfirmationDialog(
                 onDismiss = {
                     viewModel.hideDeleteDialog()
                 },
+
                 onConfirm = {
                     viewModel.deleteHabit()
                 },
+
                 title = "¿Eliminar hábito?",
-                text = "¿Seguro que quieres eliminar '${uiState.habitToDelete?.name}'?",
+
+                text =
+                    "¿Seguro que quieres eliminar '${uiState.habitToDelete?.name}'?",
+
                 confirmButtonText = "Eliminar"
             )
         }
 
+        /*
+         * ====================================================
+         * DIÁLOGO AGREGAR / EDITAR
+         * ====================================================
+         */
+
         if (uiState.showAddDialog) {
+
             AddHabitDialog(
-                initialTitle = uiState.habitToEdit?.name ?: "",
-                initialDescription = uiState.habitToEdit?.description ?: "",
-                initialFrequency = uiState.habitToEdit?.frequency
-                    ?: "DIARIO",
+
+                initialTitle =
+                    uiState.habitToEdit?.name ?: "",
+
+                initialDescription =
+                    uiState.habitToEdit?.description ?: "",
+
+                initialFrequency =
+                    uiState.habitToEdit?.frequency ?: "DIARIO",
+
                 onDismiss = {
                     viewModel.hideDialog()
                 },
+
                 onConfirm = { name, desc, freq ->
+
                     if (uiState.habitToEdit != null) {
+
                         viewModel.updateHabit(
                             uiState.habitToEdit!!.copy(
                                 name = name,
@@ -185,7 +240,9 @@ fun HabitScreen(
                                 frequency = freq
                             )
                         )
+
                     } else {
+
                         viewModel.createHabit(
                             name,
                             desc,

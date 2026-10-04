@@ -1,4 +1,4 @@
-package com.fingoal.app.presentation.auth
+package com.fingoal.app.ui.screens.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

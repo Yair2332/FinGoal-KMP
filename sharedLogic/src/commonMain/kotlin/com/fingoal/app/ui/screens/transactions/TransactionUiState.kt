@@ -1,4 +1,4 @@
-package com.fingoal.app.presentation.transactions
+package com.fingoal.app.ui.screens.transactions
 
 import com.fingoal.app.domain.model.Transaction
 import com.fingoal.app.ui.components.AssistantQuestion

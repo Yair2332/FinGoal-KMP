@@ -39,11 +39,11 @@ import com.fingoal.app.domain.usecase.transactions.SyncTransactionsUseCase
 import com.fingoal.app.domain.usecase.transactions.UpdateTransactionUseCase
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import com.fingoal.app.presentation.auth.AuthViewModel
-import com.fingoal.app.presentation.dashboard.DashboardViewModel
-import com.fingoal.app.presentation.goals.GoalViewModel
-import com.fingoal.app.presentation.habits.HabitViewModel
-import com.fingoal.app.presentation.transactions.TransactionViewModel
+import com.fingoal.app.ui.screens.auth.AuthViewModel
+import com.fingoal.app.ui.screens.dashboard.DashboardViewModel
+import com.fingoal.app.ui.screens.goals.GoalViewModel
+import com.fingoal.app.ui.screens.habits.HabitViewModel
+import com.fingoal.app.ui.screens.transactions.TransactionViewModel
 
 
 val viewModelModule = module {

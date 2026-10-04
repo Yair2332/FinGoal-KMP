@@ -1,4 +1,4 @@
-package com.fingoal.app.presentation.goals
+package com.fingoal.app.ui.screens.goals
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +11,7 @@ import com.fingoal.app.domain.usecase.goals.GetGoalsUseCase
 import com.fingoal.app.domain.usecase.goals.SyncGoalsUseCase
 import com.fingoal.app.domain.usecase.goals.UpdateGoalUseCase
 import com.fingoal.app.domain.usecase.goals.WithdrawGoalUseCase
+import com.fingoal.app.ui.components.AssistantQuestion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,9 +41,37 @@ class GoalViewModel(
     private fun loadGoals() {
         viewModelScope.launch {
             getGoalsUseCase().collect { list ->
-                _uiState.update { it.copy(goals = list, isLoading = false) }
+
+                val assistantQuestions =
+                    buildAssistantQuestions(list)
+
+                _uiState.update {
+                    it.copy(
+                        goals = list,
+                        isLoading = false,
+                        assistantQuestions = assistantQuestions
+                    )
+                }
             }
         }
+    }
+
+    private fun buildAssistantQuestions(
+        goals: List<Goal>
+    ): List<AssistantQuestion> {
+
+        val totalGoals = goals.size
+
+        return listOf(
+            AssistantQuestion(
+                question = "¿Cuántas metas tengo?",
+                answer = if (totalGoals == 0) {
+                    "Actualmente no tienes metas registradas."
+                } else {
+                    "Actualmente tienes $totalGoals metas registradas."
+                }
+            )
+        )
     }
 
     fun refreshGoals() = viewModelScope.launch {

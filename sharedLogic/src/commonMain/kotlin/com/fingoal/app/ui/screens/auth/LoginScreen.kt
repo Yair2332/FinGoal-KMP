@@ -26,8 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fingoal.sharedlogic.generated.resources.Res
-import com.fingoal.app.presentation.auth.AuthUiState
-import com.fingoal.app.presentation.auth.AuthViewModel
 import com.fingoal.app.ui.screens.auth.components.AuthButton
 import com.fingoal.app.ui.screens.auth.components.AuthTextField
 import fingoal.sharedlogic.generated.resources.fingoal

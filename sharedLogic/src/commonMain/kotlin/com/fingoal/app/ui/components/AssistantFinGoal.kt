@@ -174,14 +174,13 @@ fun AssistantFinGoal(
     Box(
         modifier = modifier.fillMaxSize()
     ) {
-
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
                 .padding(
                     end = 20.dp,
-                    bottom = 20.dp
+                    bottom = 5.dp
                 )
                 .size(64.dp)
                 .shadow(
@@ -189,30 +188,19 @@ fun AssistantFinGoal(
                     shape = CircleShape
                 )
                 .clip(CircleShape)
-                .background(
-                    characterConfig.color
-                )
+                .background(characterConfig.color)
                 .clickable {
                     showAssistant = true
                 },
-
             contentAlignment = Alignment.Center
         ) {
-
             Image(
-                painter =
-                    painterResource(characterResource),
-
-                contentDescription =
-                    "Abrir asistente ${characterConfig.name}",
-
+                painter = painterResource(characterResource),
+                contentDescription = "Abrir asistente ${characterConfig.name}",
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(5.dp)
+                    .size(58.dp)
                     .clip(CircleShape),
-
-                contentScale =
-                    ContentScale.Crop
+                contentScale = ContentScale.Crop
             )
         }
     }
