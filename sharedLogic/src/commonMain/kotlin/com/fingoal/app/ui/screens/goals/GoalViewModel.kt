@@ -12,6 +12,7 @@ import com.fingoal.app.domain.usecase.goals.SyncGoalsUseCase
 import com.fingoal.app.domain.usecase.goals.UpdateGoalUseCase
 import com.fingoal.app.domain.usecase.goals.WithdrawGoalUseCase
 import com.fingoal.app.ui.components.AssistantQuestion
+import com.fingoal.app.ui.screens.goals.components.GoalSummary
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -160,5 +161,26 @@ class GoalViewModel(
         } catch (e: Exception) {
             _uiState.update { it.copy(errorMessage = e.message) }
         }
+    }
+
+    fun getGoalSummary(): GoalSummary {
+        val goals = _uiState.value.goals
+
+        val totalTarget = goals.sumOf {
+            it.targetAmount
+        }
+
+        val averageTarget =
+            if (goals.isEmpty()) {
+                0.0
+            } else {
+                totalTarget / goals.size
+            }
+
+        return GoalSummary(
+            totalGoals = goals.size,
+            totalTarget = totalTarget,
+            averageTarget = averageTarget
+        )
     }
 }

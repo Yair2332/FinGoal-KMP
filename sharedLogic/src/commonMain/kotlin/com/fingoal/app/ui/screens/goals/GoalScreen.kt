@@ -34,6 +34,7 @@ import com.fingoal.app.ui.components.ConfirmationDialog
 import com.fingoal.app.ui.components.EmptyStateComponent
 import com.fingoal.app.ui.screens.goals.components.GoalFormContent
 import com.fingoal.app.ui.screens.goals.components.GoalItem
+import com.fingoal.app.ui.screens.goals.components.GoalSummaryCard
 import fingoal.sharedlogic.generated.resources.Res
 import fingoal.sharedlogic.generated.resources.metas_target
 
@@ -79,6 +80,12 @@ fun GoalScreen(
                         "El éxito es el resultado de metas claras."
                     ),
                     shadowColor = Color(0xFF0056B3)
+                )
+            }
+
+            item {
+                GoalSummaryCard(
+                    summary = viewModel.getGoalSummary()
                 )
             }
 

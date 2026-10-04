@@ -13,7 +13,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import com.fingoal.app.ui.screens.transactions.components.ExpenseCategorySummary
 import kotlinx.coroutines.flow.update
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.coroutines.launch
 
 class TransactionViewModel(
@@ -375,4 +381,68 @@ class TransactionViewModel(
     ): String {
         return amount.toString()
     }
+
+    private fun getCurrentMonthTransactions(): List<Transaction> {
+
+        val now = Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+
+        val startOfMonth = LocalDate(
+            year = now.year,
+            monthNumber = now.monthNumber,
+            dayOfMonth = 1
+        )
+
+        val startOfMonthMillis = startOfMonth
+            .atStartOfDayIn(TimeZone.currentSystemDefault())
+            .toEpochMilliseconds()
+
+        return _uiState.value.transactions.filter {
+            it.date >= startOfMonthMillis
+        }
+    }
+
+    fun getExpenseCategorySummary(): List<ExpenseCategorySummary> {
+
+        val expenses = getCurrentMonthTransactions()
+            .filter { !it.isIncome }
+
+        val totalExpenses = expenses.sumOf { it.amount }
+
+        if (totalExpenses <= 0.0) {
+            return emptyList()
+        }
+
+        return expenses
+            .groupBy { it.category }
+            .map { (category, transactions) ->
+                val amount = transactions.sumOf { it.amount }
+
+                ExpenseCategorySummary(
+                    category = category,
+                    amount = amount,
+                    percentage = (amount / totalExpenses).toFloat()
+                )
+            }
+            .sortedByDescending { it.amount }
+    }
+
+    fun getMonthlyIncome(): Double {
+        return getCurrentMonthTransactions()
+            .filter { it.isIncome }
+            .sumOf { it.amount }
+    }
+
+    fun getMonthlyExpenses(): Double {
+        return getCurrentMonthTransactions()
+            .filter { !it.isIncome }
+            .sumOf { it.amount }
+    }
+
 }
+
+data class ExpenseCategorySummary(
+    val category: String,
+    val amount: Double,
+    val percentage: Float
+)

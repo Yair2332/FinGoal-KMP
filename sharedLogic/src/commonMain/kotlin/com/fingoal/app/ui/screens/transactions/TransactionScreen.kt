@@ -28,6 +28,7 @@ import com.fingoal.app.ui.components.EmptyStateComponent
 import com.fingoal.app.ui.screens.transactions.components.TransactionFormContent
 import com.fingoal.app.ui.screens.transactions.components.TransactionItem
 import com.fingoal.app.ui.screens.transactions.components.TransactionListHeader
+import com.fingoal.app.ui.screens.transactions.components.ExpenseCategorySummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,28 +75,19 @@ fun TransactionScreen(
              */
 
             item {
-
-                val totalIngresos =
-                    uiState.transactions
-                        .filter {
-                            it.isIncome
-                        }
-                        .sumOf {
-                            it.amount
-                        }
-
-                val totalGastos =
-                    uiState.transactions
-                        .filter {
-                            !it.isIncome
-                        }
-                        .sumOf {
-                            it.amount
-                        }
+                val totalIngresos = viewModel.getMonthlyIncome()
+                val totalGastos = viewModel.getMonthlyExpenses()
 
                 TransactionListHeader(
                     ingresos = totalIngresos,
                     gastos = totalGastos
+                )
+            }
+
+            item {
+
+                ExpenseCategorySummary(
+                    categories = viewModel.getExpenseCategorySummary()
                 )
             }
 

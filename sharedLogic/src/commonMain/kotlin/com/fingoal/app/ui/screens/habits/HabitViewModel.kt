@@ -10,6 +10,7 @@ import com.fingoal.app.domain.usecase.habits.SyncHabitsUseCase
 import com.fingoal.app.domain.usecase.habits.ToggleHabitUseCase
 import com.fingoal.app.domain.usecase.habits.UpdateHabitUseCase
 import com.fingoal.app.ui.components.AssistantQuestion
+import com.fingoal.app.ui.screens.habits.components.HabitSummary
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -238,5 +239,32 @@ class HabitViewModel(
                 }
             }
         }
+    }
+
+
+    fun getHabitSummary(): HabitSummary {
+        val habits = _uiState.value.habits
+
+        return HabitSummary(
+            total = habits.size,
+            daily = habits.count {
+                it.frequency.equals(
+                    "DIARIO",
+                    ignoreCase = true
+                )
+            },
+            weekly = habits.count {
+                it.frequency.equals(
+                    "SEMANAL",
+                    ignoreCase = true
+                )
+            },
+            monthly = habits.count {
+                it.frequency.equals(
+                    "MENSUAL",
+                    ignoreCase = true
+                )
+            }
+        )
     }
 }

@@ -28,6 +28,7 @@ import com.fingoal.app.ui.components.EmptyStateComponent
 import com.fingoal.app.ui.screens.habits.components.AddHabitDialog
 import com.fingoal.app.ui.screens.habits.components.HabitHeader
 import com.fingoal.app.ui.screens.habits.components.HabitItem
+import com.fingoal.app.ui.screens.habits.components.HabitSummaryCard
 
 @Composable
 fun HabitScreen(
@@ -72,6 +73,12 @@ fun HabitScreen(
             item {
                 HabitHeader(
                     phrases = phrases
+                )
+            }
+
+            item {
+                HabitSummaryCard(
+                    summary = viewModel.getHabitSummary()
                 )
             }
 
