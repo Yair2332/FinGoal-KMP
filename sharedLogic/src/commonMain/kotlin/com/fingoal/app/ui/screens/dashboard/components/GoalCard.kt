@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.fingoal.app.domain.model.Goal
 import fingoal.sharedlogic.generated.resources.Res
 import fingoal.sharedlogic.generated.resources.metas
@@ -70,14 +71,21 @@ fun GoalCard(
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant
             ) {
-                Image(
-                    painter = painterResource(
-                        Res.drawable.metas
-                    ),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                if (goal.localImagePath.isNullOrBlank()) {
+                    Image(
+                        painter = painterResource(Res.drawable.metas),
+                        contentDescription = goal.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    AsyncImage(
+                        model = goal.localImagePath,
+                        contentDescription = goal.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
 
             Spacer(

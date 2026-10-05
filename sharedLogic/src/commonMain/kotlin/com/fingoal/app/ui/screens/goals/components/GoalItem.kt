@@ -1,5 +1,13 @@
 package com.fingoal.app.ui.screens.goals.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -35,11 +43,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.fingoal.app.domain.model.Goal
 import fingoal.sharedlogic.generated.resources.Res
 import fingoal.sharedlogic.generated.resources.metas
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun GoalItem(
@@ -56,7 +66,11 @@ fun GoalItem(
         mutableStateOf(false)
     }
 
-    val progress =
+    // Derived values calculated only when goal changes
+    val progress = remember(
+        goal.currentAmount,
+        goal.targetAmount
+    ) {
         if (goal.targetAmount > 0) {
             (goal.currentAmount / goal.targetAmount)
                 .toFloat()
@@ -64,15 +78,29 @@ fun GoalItem(
         } else {
             0f
         }
+    }
 
-    val isCompleted = goal.currentAmount >= goal.targetAmount
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        label = "GoalProgressAnimation"
+    )
 
-    val successColor =
-        if (isSystemInDarkTheme()) {
+    val isCompleted = remember(
+        goal.currentAmount,
+        goal.targetAmount
+    ) {
+        goal.currentAmount >= goal.targetAmount
+    }
+
+    val isDarkTheme = isSystemInDarkTheme()
+
+    val successColor = remember(isDarkTheme) {
+        if (isDarkTheme) {
             Color(0xFF81C784)
         } else {
             Color(0xFF388E3C)
         }
+    }
 
     val textColor = MaterialTheme.colorScheme.onSurface
     val subTextColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -97,6 +125,7 @@ fun GoalItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
+            .animateContentSize()
             .clickable {
                 expanded = !expanded
             },
@@ -112,22 +141,30 @@ fun GoalItem(
             modifier = Modifier.fillMaxWidth()
         ) {
 
+            // Goal Image Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
             ) {
 
-                AsyncImage(
-                    model = if (goal.localImagePath.isNullOrBlank()) {
-                        Res.drawable.metas
-                    } else {
-                        goal.localImagePath
-                    },
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                // Si no hay URL, muestra la imagen local metas.webp.
+                // Si hay URL, usa Coil para cargarla.
+                if (goal.localImagePath.isNullOrBlank()) {
+                    Image(
+                        painter = painterResource(Res.drawable.metas),
+                        contentDescription = goal.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    AsyncImage(
+                        model = goal.localImagePath,
+                        contentDescription = goal.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
                 if (isCompleted) {
                     Box(
@@ -141,7 +178,8 @@ fun GoalItem(
                         Text(
                             text = "COMPLETADO",
                             color = Color.White,
-                            style = MaterialTheme.typography.headlineSmall
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -161,12 +199,13 @@ fun GoalItem(
                             horizontal = 8.dp,
                             vertical = 4.dp
                         ),
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
                         color = primaryColor
                     )
                 }
             }
 
+            // Goal Details Container
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
@@ -185,7 +224,7 @@ fun GoalItem(
                         Text(
                             text = goal.title,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            fontWeight = FontWeight.Bold,
                             color = textColor
                         )
 
@@ -207,7 +246,7 @@ fun GoalItem(
                             } else {
                                 primaryColor
                             },
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            fontWeight = FontWeight.Bold
                         )
 
                         Text(
@@ -219,11 +258,11 @@ fun GoalItem(
                 }
 
                 Spacer(
-                    Modifier.height(12.dp)
+                    modifier = Modifier.height(12.dp)
                 )
 
                 LinearProgressIndicator(
-                    progress = { progress },
+                    progress = { animatedProgress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
@@ -235,15 +274,17 @@ fun GoalItem(
                     } else {
                         primaryColor
                     },
-                    trackColor = primaryColor.copy(alpha = 0.3f)
+                    trackColor = primaryColor.copy(
+                        alpha = 0.3f
+                    )
                 )
 
                 Spacer(
-                    Modifier.height(8.dp)
+                    modifier = Modifier.height(8.dp)
                 )
 
                 Row(
-                    Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -264,72 +305,82 @@ fun GoalItem(
                         Text(
                             text = "Faltan $${(goal.targetAmount - goal.currentAmount).toInt()}",
                             style = MaterialTheme.typography.bodySmall,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            fontWeight = FontWeight.Bold,
                             color = primaryColor
                         )
                     }
                 }
 
-                if (expanded) {
-                    Spacer(
-                        Modifier.height(8.dp)
-                    )
+                // Smoothly animated expanding action panel
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column {
+                        Spacer(
+                            modifier = Modifier.height(12.dp)
+                        )
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(
-                                    alpha = 0.3f
-                                ),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceAround
-                    ) {
-
-                        TextButton(
-                            onClick = onEdit
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                        alpha = 0.3f
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceAround
                         ) {
-                            Icon(
-                                Icons.Default.Edit,
-                                contentDescription = null,
-                                tint = primaryColor
-                            )
-                            Text(
-                                "Editar",
-                                color = primaryColor
-                            )
-                        }
 
-                        TextButton(
-                            onClick = {
-                                showDialog = true
+                            TextButton(
+                                onClick = onEdit
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Editar meta",
+                                    tint = primaryColor
+                                )
+
+                                Text(
+                                    text = "Editar",
+                                    color = primaryColor
+                                )
                             }
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                tint = primaryColor
-                            )
-                            Text(
-                                "Aportar",
-                                color = primaryColor
-                            )
-                        }
 
-                        TextButton(
-                            onClick = onDelete
-                        ) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = deleteColor
-                            )
-                            Text(
-                                "Borrar",
-                                color = deleteColor
-                            )
+                            TextButton(
+                                onClick = {
+                                    showDialog = true
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Aportar a la meta",
+                                    tint = primaryColor
+                                )
+
+                                Text(
+                                    text = "Aportar",
+                                    color = primaryColor
+                                )
+                            }
+
+                            TextButton(
+                                onClick = onDelete
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Borrar meta",
+                                    tint = deleteColor
+                                )
+
+                                Text(
+                                    text = "Borrar",
+                                    color = deleteColor
+                                )
+                            }
                         }
                     }
                 }
