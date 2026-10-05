@@ -38,6 +38,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.fingoal.app.domain.model.Goal
+import fingoal.sharedlogic.generated.resources.Res
+import fingoal.sharedlogic.generated.resources.metas
 
 @Composable
 fun GoalItem(
@@ -109,13 +111,19 @@ fun GoalItem(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
             ) {
+
                 AsyncImage(
-                    model = goal.localImagePath,
+                    model = if (goal.localImagePath.isNullOrBlank()) {
+                        Res.drawable.metas
+                    } else {
+                        goal.localImagePath
+                    },
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -162,11 +170,13 @@ fun GoalItem(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top
                 ) {
+
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -277,6 +287,7 @@ fun GoalItem(
                             .padding(8.dp),
                         horizontalArrangement = Arrangement.SpaceAround
                     ) {
+
                         TextButton(
                             onClick = onEdit
                         ) {
@@ -326,4 +337,3 @@ fun GoalItem(
         }
     }
 }
-

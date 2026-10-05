@@ -11,6 +11,7 @@ import com.fingoal.app.data.local.entities.GoalEntity
 import com.fingoal.app.data.local.entities.HabitEntity
 import com.fingoal.app.data.local.entities.TransactionEntity
 
+
 @Database(
     entities = [
         GoalEntity::class,
