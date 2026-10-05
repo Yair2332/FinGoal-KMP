@@ -37,7 +37,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,26 +49,24 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import com.fingoal.app.data.local.UserPreferences
-import com.fingoal.app.ui.screens.auth.AuthViewModel
-import com.fingoal.app.ui.screens.dashboard.DashboardViewModel
-import com.fingoal.app.ui.screens.goals.GoalViewModel
-import com.fingoal.app.ui.screens.habits.HabitViewModel
 import com.fingoal.app.presentation.theme.FinGoalTheme
-import com.fingoal.app.ui.screens.transactions.TransactionViewModel
 import com.fingoal.app.ui.components.InfoModal
 import com.fingoal.app.ui.components.getHelpInfoForRoute
+import com.fingoal.app.ui.screens.auth.AuthViewModel
 import com.fingoal.app.ui.screens.auth.LoginScreen
 import com.fingoal.app.ui.screens.auth.RegisterScreen
 import com.fingoal.app.ui.screens.dashboard.DashboardScreen
+import com.fingoal.app.ui.screens.dashboard.DashboardViewModel
 import com.fingoal.app.ui.screens.goals.GoalScreen
+import com.fingoal.app.ui.screens.goals.GoalViewModel
 import com.fingoal.app.ui.screens.habits.HabitScreen
+import com.fingoal.app.ui.screens.habits.HabitViewModel
 import com.fingoal.app.ui.screens.transactions.TransactionScreen
+import com.fingoal.app.ui.screens.transactions.TransactionViewModel
 import fingoal.sharedlogic.generated.resources.Res
 import fingoal.sharedlogic.generated.resources.logo
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 
 @Composable
 fun RootNavigation(
@@ -85,31 +82,80 @@ fun RootNavigation(
     FinGoalTheme(
         darkTheme = isDarkMode
     ) {
+
+        /*
+         * ---------------------------------------------------------
+         * CONTROL CENTRAL DE SESIÓN
+         * ---------------------------------------------------------
+         *
+         * Acá decidimos una sola vez qué pantalla corresponde
+         * según el estado real del usuario.
+         *
+         * userId == null
+         *     -> todavía estamos cargando
+         *
+         * userId == ""
+         *     -> no hay sesión
+         *
+         * userId != ""
+         *     -> sesión iniciada
+         */
+
+        LaunchedEffect(userId) {
+
+            if (userId == null) {
+                return@LaunchedEffect
+            }
+
+            val currentRoute =
+                navController.currentDestination?.route
+
+            val isLoggedIn =
+                userId!!.isNotEmpty()
+
+            val isInAuth =
+                currentRoute?.contains("login") == true ||
+                        currentRoute?.contains("register") == true
+
+            val isInMain =
+                currentRoute?.contains("main") == true
+
+            if (isLoggedIn && !isInMain) {
+
+                navController.navigate("main") {
+
+                    popUpTo(0) {
+                        inclusive = true
+                    }
+
+                    launchSingleTop = true
+                }
+
+            } else if (!isLoggedIn && !isInAuth) {
+
+                navController.navigate("auth") {
+
+                    popUpTo(0) {
+                        inclusive = true
+                    }
+
+                    launchSingleTop = true
+                }
+            }
+        }
+
         NavHost(
             navController = navController,
             startDestination = "loading"
         ) {
 
+            /*
+             * -----------------------------------------------------
+             * LOADING
+             * -----------------------------------------------------
+             */
+
             composable("loading") {
-
-                LaunchedEffect(userId) {
-
-                    if (userId != null) {
-
-                        val destination =
-                            if (userId!!.isEmpty()) {
-                                "auth"
-                            } else {
-                                "main"
-                            }
-
-                        navController.navigate(destination) {
-                            popUpTo("loading") {
-                                inclusive = true
-                            }
-                        }
-                    }
-                }
 
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -118,6 +164,12 @@ fun RootNavigation(
                     CircularProgressIndicator()
                 }
             }
+
+            /*
+             * -----------------------------------------------------
+             * AUTH
+             * -----------------------------------------------------
+             */
 
             navigation(
                 startDestination = "login",
@@ -134,11 +186,9 @@ fun RootNavigation(
                         },
 
                         onLoginSuccess = {
-                            navController.navigate("main") {
-                                popUpTo("auth") {
-                                    inclusive = true
-                                }
-                            }
+                            // No navegamos manualmente.
+                            // userId se actualiza y RootNavigation
+                            // se encarga de llevarnos a main.
                         }
                     )
                 }
@@ -153,15 +203,19 @@ fun RootNavigation(
                         },
 
                         onRegisterSuccess = {
-                            navController.navigate("main") {
-                                popUpTo("auth") {
-                                    inclusive = true
-                                }
-                            }
+                            // No navegamos manualmente.
+                            // userId se actualiza y RootNavigation
+                            // se encarga de llevarnos a main.
                         }
                     )
                 }
             }
+
+            /*
+             * -----------------------------------------------------
+             * MAIN
+             * -----------------------------------------------------
+             */
 
             composable("main") {
 
@@ -170,14 +224,8 @@ fun RootNavigation(
                     onToggleDarkMode = onToggleDarkMode,
 
                     onLogout = {
-                        navController.navigate("auth") {
-                            popUpTo(0) {
-                                inclusive = true
-                            }
-                        }
-                    },
-
-                    userPreferences = authViewModel.userPreferences
+                        authViewModel.logout()
+                    }
                 )
             }
         }
@@ -189,8 +237,7 @@ fun RootNavigation(
 private fun MainAppNavigation(
     isDarkMode: Boolean,
     onToggleDarkMode: () -> Unit,
-    onLogout: () -> Unit,
-    userPreferences: UserPreferences
+    onLogout: () -> Unit
 ) {
     val navController = rememberNavController()
 
@@ -201,8 +248,6 @@ private fun MainAppNavigation(
 
     val currentRoute =
         currentDestination?.route
-
-    val scope = rememberCoroutineScope()
 
     var showHelpModal by remember {
         mutableStateOf(false)
@@ -313,21 +358,13 @@ private fun MainAppNavigation(
 
                             IconButton(
                                 onClick = {
-
-                                    scope.launch {
-
-                                        userPreferences.clear()
-
-                                        onLogout()
-                                    }
+                                    onLogout()
                                 }
                             ) {
 
                                 Icon(
                                     imageVector =
-                                        Icons.AutoMirrored
-                                            .Filled
-                                            .ExitToApp,
+                                        Icons.AutoMirrored.Filled.ExitToApp,
                                     contentDescription =
                                         "Salir",
                                     tint =

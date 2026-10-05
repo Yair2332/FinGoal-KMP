@@ -1,5 +1,6 @@
 package com.fingoal.app.ui.screens.auth.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -9,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,8 +22,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.ExperimentalMaterial3Api
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun AuthTextField(
     value: String,
@@ -30,26 +31,67 @@ fun AuthTextField(
     icon: ImageVector? = null,
     isPassword: Boolean = false
 ) {
+    val isDark = isSystemInDarkTheme()
+
+    val textColor = if (isDark) {
+        Color.White
+    } else {
+        Color.Black
+    }
+
+    val labelColor = if (isDark) {
+        Color(0xFFE0E0E0)
+    } else {
+        Color(0xFF555555)
+    }
+
+    val iconColor = if (isDark) {
+        Color(0xFFE0E0E0)
+    } else {
+        Color(0xFF444444)
+    }
+
+    val borderColor = if (isDark) {
+        Color(0xFF888888)
+    } else {
+        Color(0xFF777777)
+    }
+
+    val backgroundColor = if (isDark) {
+        Color(0xFF1E1E1E)
+    } else {
+        Color.White
+    }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
+
         label = {
-            Text(label)
+            Text(
+                text = label,
+                color = labelColor
+            )
         },
+
         leadingIcon = icon?.let {
             {
                 Icon(
                     imageVector = it,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = iconColor
                 )
             }
         },
+
         singleLine = true,
+
         visualTransformation = if (isPassword) {
             PasswordVisualTransformation()
         } else {
             VisualTransformation.None
         },
+
         keyboardOptions = KeyboardOptions(
             keyboardType = if (isPassword) {
                 KeyboardType.Password
@@ -57,8 +99,33 @@ fun AuthTextField(
                 KeyboardType.Email
             }
         ),
+
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+
+        shape = RoundedCornerShape(12.dp),
+
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = textColor,
+            unfocusedTextColor = textColor,
+
+            focusedContainerColor = backgroundColor,
+            unfocusedContainerColor = backgroundColor,
+
+            focusedLabelColor = labelColor,
+            unfocusedLabelColor = labelColor,
+
+            focusedLeadingIconColor = iconColor,
+            unfocusedLeadingIconColor = iconColor,
+
+            focusedBorderColor = borderColor,
+            unfocusedBorderColor = borderColor,
+
+            cursorColor = if (isDark) {
+                Color.White
+            } else {
+                Color.Black
+            }
+        )
     )
 }
 
@@ -85,7 +152,8 @@ fun AuthButton(
             Text(
                 text = text,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                color = Color.White
             )
         }
     }

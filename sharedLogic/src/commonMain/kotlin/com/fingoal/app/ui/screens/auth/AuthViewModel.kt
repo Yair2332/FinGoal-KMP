@@ -28,55 +28,104 @@ class AuthViewModel(
             initialValue = null
         )
 
-    fun login(email: String, pass: String) {
-        val validationError = AuthValidator.validateLogin(email, pass)
+    fun login(
+        email: String,
+        pass: String
+    ) {
+        val validationError =
+            AuthValidator.validateLogin(
+                email,
+                pass
+            )
+
         if (validationError != null) {
-            _uiState.value = AuthUiState.Error(validationError)
+            _uiState.value =
+                AuthUiState.Error(validationError)
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = AuthUiState.Loading
+            _uiState.value =
+                AuthUiState.Loading
+
             loginUseCase(email, pass)
                 .onSuccess { id ->
+
                     userPreferences.saveUserId(id)
-                    _uiState.value = AuthUiState.Success(id)
+
+                    _uiState.value =
+                        AuthUiState.Success(id)
                 }
                 .onFailure { error ->
+
                     val message = when {
-                        error.message?.contains("timeout", ignoreCase = true) == true ->
+                        error.message?.contains(
+                            "timeout",
+                            ignoreCase = true
+                        ) == true -> {
                             "La conexión tardó demasiado. Intentá de nuevo."
-                        else -> "No se pudo iniciar sesión. Revisá tus datos y conexión."
+                        }
+
+                        else -> {
+                            "No se pudo iniciar sesión. Revisá tus datos y conexión."
+                        }
                     }
-                    _uiState.value = AuthUiState.Error(message)
+
+                    _uiState.value =
+                        AuthUiState.Error(message)
                 }
         }
     }
 
-    fun register(email: String, pass: String, confirm: String) {
-        val validationError = AuthValidator.validateRegister(email, pass, confirm)
+    fun register(
+        email: String,
+        pass: String,
+        confirm: String
+    ) {
+        val validationError =
+            AuthValidator.validateRegister(
+                email,
+                pass,
+                confirm
+            )
 
         if (validationError != null) {
-            _uiState.value = AuthUiState.Error(validationError)
+            _uiState.value =
+                AuthUiState.Error(validationError)
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = AuthUiState.Loading
+            _uiState.value =
+                AuthUiState.Loading
+
             registerUseCase(email, pass)
                 .onSuccess { id ->
+
                     userPreferences.saveUserId(id)
-                    _uiState.value = AuthUiState.Success(id)
+
+                    _uiState.value =
+                        AuthUiState.Success(id)
                 }
                 .onFailure {
-                    _uiState.value = AuthUiState.Error(
-                        "No se pudo completar el registro. Revisá tu conexión e intentá de nuevo."
-                    )
+
+                    _uiState.value =
+                        AuthUiState.Error(
+                            "No se pudo completar el registro. Revisá tu conexión e intentá de nuevo."
+                        )
                 }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            userPreferences.clear()
+            _uiState.value = AuthUiState.Idle
         }
     }
 
     fun resetState() {
-        _uiState.value = AuthUiState.Idle
+        _uiState.value =
+            AuthUiState.Idle
     }
 }

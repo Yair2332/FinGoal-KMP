@@ -2,6 +2,7 @@ package com.fingoal.app.ui.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,21 +18,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import fingoal.sharedlogic.generated.resources.Res
 import com.fingoal.app.ui.screens.auth.components.AuthButton
 import com.fingoal.app.ui.screens.auth.components.AuthTextField
+import fingoal.sharedlogic.generated.resources.Res
 import fingoal.sharedlogic.generated.resources.fingoal
 import org.jetbrains.compose.resources.painterResource
-
 
 @Composable
 fun LoginScreen(
@@ -42,6 +43,8 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val isDark = isSystemInDarkTheme()
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -63,11 +66,15 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+                if (isDark) Color(0xFF121212)
+                else Color.White
+            )
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Image(
             painter = painterResource(Res.drawable.fingoal),
             contentDescription = "Logo Fingoal",
@@ -80,12 +87,16 @@ fun LoginScreen(
             text = "Bienvenido",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = if (isDark) Color.White else Color.Black
         )
 
         Text(
             text = "Inicia sesión para continuar",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (isDark) {
+                Color(0xFFE0E0E0)
+            } else {
+                Color(0xFF555555)
+            },
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
@@ -120,6 +131,7 @@ fun LoginScreen(
 
         errorMessage?.let { message ->
             Spacer(Modifier.height(12.dp))
+
             Text(
                 text = message,
                 color = MaterialTheme.colorScheme.error
@@ -129,7 +141,14 @@ fun LoginScreen(
         TextButton(
             onClick = onNavigateToRegister
         ) {
-            Text("¿No tienes cuenta? Regístrate")
+            Text(
+                text = "¿No tienes cuenta? Regístrate",
+                color = if (isDark) {
+                    Color(0xFF80CBC4)
+                } else {
+                    Color(0xFF00695C)
+                }
+            )
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.fingoal.app.ui.screens.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,13 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fingoal.app.ui.screens.auth.components.AuthButton
@@ -39,6 +41,8 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
+
+    val isDark = isSystemInDarkTheme()
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -59,11 +63,15 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+                if (isDark) Color(0xFF121212)
+                else Color.White
+            )
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Icon(
             imageVector = Icons.Default.PersonAdd,
             contentDescription = null,
@@ -77,12 +85,16 @@ fun RegisterScreen(
             text = "Crear cuenta",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = if (isDark) Color.White else Color.Black
         )
 
         Text(
             text = "Comienza tu aventura financiera hoy",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (isDark) {
+                Color(0xFFE0E0E0)
+            } else {
+                Color(0xFF555555)
+            },
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
@@ -129,7 +141,11 @@ fun RegisterScreen(
         TextButton(
             onClick = onNavigateToLogin
         ) {
-            Text("¿Ya tienes cuenta? Inicia sesión")
+            Text(
+                text = "¿Ya tienes cuenta? Inicia sesión",
+                color = if (isDark) Color(0xFF80CBC4)
+                else Color(0xFF00695C)
+            )
         }
     }
 }
