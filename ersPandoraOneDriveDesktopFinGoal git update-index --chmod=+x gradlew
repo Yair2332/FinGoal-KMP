@@ -1,0 +1,13 @@
+[1mdiff --git a/iosApp/iosApp.xcodeproj/project.pbxproj b/iosApp/iosApp.xcodeproj/project.pbxproj[m
+[1mindex 55547de..42f7746 100644[m
+[1m--- a/iosApp/iosApp.xcodeproj/project.pbxproj[m
+[1m+++ b/iosApp/iosApp.xcodeproj/project.pbxproj[m
+[36m@@ -152,7 +152,7 @@[m
+ 			);[m
+ 			runOnlyForDeploymentPostprocessing = 0;[m
+ 			shellPath = /bin/sh;[m
+[31m-					shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :sharedLogic:embedAndSignAppleFrameworkForXcode\n";[m
+[32m+[m					[32mshellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :sharedUI:embedAndSignAppleFrameworkForXcode\n";[m
+ 		};[m
+ /* End PBXShellScriptBuildPhase section */[m
+ [m
