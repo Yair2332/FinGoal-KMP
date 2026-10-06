@@ -102,7 +102,7 @@ Datos locales   REST API
 ### Capas principales
 
 ```text
-Presentation
+Ui
 ├── Compose UI
 ├── Screens
 ├── Components
